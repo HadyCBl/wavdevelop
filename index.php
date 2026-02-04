@@ -480,91 +480,92 @@ if (isset($_SESSION['usu'])) {
     <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
     <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
     
-    <script>
-        // Bloquear reCAPTCHA
-        window.grecaptcha = {
-            ready: function(callback) {
-                if (callback) {
-                    setTimeout(function() {
-                        callback();
-                    }, 100);
-                }
-            },
-            execute: function(siteKey, options) {
-                return Promise.resolve('');
-            },
-            render: function() {
-                return '';
+  <script>
+    // Bloquear reCAPTCHA
+    window.grecaptcha = {
+        ready: function(callback) {
+            if (callback) {
+                setTimeout(function() {
+                    callback();
+                }, 100);
             }
-        };
+        },
+        execute: function(siteKey, options) {
+            return Promise.resolve('');
+        },
+        render: function() {
+            return '';
+        }
+    };
+    
+    // Deshabilitar Service Workers
+    document.addEventListener('DOMContentLoaded', function() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                registrations.forEach(function(registration) {
+                    registration.unregister();
+                });
+            });
+            
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    return Promise.all(
+                        cacheNames.map(function(cacheName) {
+                            return caches.delete(cacheName);
+                        })
+                    );
+                });
+            }
+        }
         
-        // Deshabilitar Service Workers
-        document.addEventListener('DOMContentLoaded', function() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) {
-                        registration.unregister();
-                    });
-                });
+        // Toggle password visibility - CORREGIDO
+        const togglePassword = document.getElementById('togglePasswordindex');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        
+        if (togglePassword && passwordInput && eyeIcon) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
                 
-                if ('caches' in window) {
-                    caches.keys().then(function(cacheNames) {
-                        return Promise.all(
-                            cacheNames.map(function(cacheName) {
-                                return caches.delete(cacheName);
-                            })
-                        );
-                    });
+                // Cambiar el icono
+                if (type === 'text') {
+                    eyeIcon.classList.remove('fa-eye');
+                    eyeIcon.classList.add('fa-eye-slash');
+                } else {
+                    eyeIcon.classList.remove('fa-eye-slash');
+                    eyeIcon.classList.add('fa-eye');
                 }
-            }
-            
-            // Toggle password visibility
-            const togglePassword = document.getElementById('togglePasswordindex');
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            if (togglePassword && passwordInput && eyeIcon) {
-                togglePassword.addEventListener('click', function() {
-                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordInput.setAttribute('type', type);
-                    
-                    if (type === 'text') {
-                        eyeIcon.classList.remove('fa-eye');
-                        eyeIcon.classList.add('fa-eye-slash');
-                    } else {
-                        eyeIcon.classList.remove('fa-eye-slash');
-                        eyeIcon.classList.add('fa-eye');
-                    }
-                });
-            }
-            
-            // Form submission animation
-            const form = document.getElementById('frmlogin');
-            const submitBtn = document.getElementById('btnEnviar');
-            const loader = document.querySelector('.loader-container');
-            
-            if (form && submitBtn && loader) {
-                form.addEventListener('submit', function(e) {
-                    // Mostrar loader
-                    loader.classList.remove('loading--hide');
-                    loader.classList.add('active');
-                    
-                    // Cambiar texto del botón
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO...';
-                    submitBtn.disabled = true;
-                    
-                    // Restaurar después de 3 segundos (solo para demo)
-                    setTimeout(function() {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                        loader.classList.add('loading--hide');
-                        loader.classList.remove('active');
-                    }, 3000);
-                });
-            }
-        });
-    </script>
+            });
+        }
+        
+        // Form submission animation
+        const form = document.getElementById('frmlogin');
+        const submitBtn = document.getElementById('btnEnviar');
+        const loader = document.querySelector('.loader-container');
+        
+        if (form && submitBtn && loader) {
+            form.addEventListener('submit', function(e) {
+                // Mostrar loader
+                loader.classList.remove('loading--hide');
+                loader.classList.add('active');
+                
+                // Cambiar texto del botón
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO...';
+                submitBtn.disabled = true;
+                
+                // Restaurar después de 3 segundos (solo para demo)
+                setTimeout(function() {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    loader.classList.add('loading--hide');
+                    loader.classList.remove('active');
+                }, 3000);
+            });
+        }
+    });
+</script>
 </body>
 </html>
 <?php
