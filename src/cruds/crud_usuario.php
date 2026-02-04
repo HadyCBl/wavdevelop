@@ -158,7 +158,7 @@ switch ($condi) {
             if (empty($datauser)) {
                 $_SESSION['intentos'] = isset($_SESSION['intentos']) ? $_SESSION['intentos'] + 1 : 1;
                 $showmensaje = true;
-                throw new Exception("Usuario o contraseña incorrecto");
+                throw new Exception("Usuario / contraseña incorrecto");
             }
 
             $id_usuario = $datauser[0]['id_usu'];
@@ -361,7 +361,7 @@ switch ($condi) {
             if (empty($datauser)) {
                 $_SESSION[$intentos_key]++;
                 $showmensaje = true;
-                throw new Exception("Usuario o contraseña incorrecto");
+                throw new Exception("Usuario / contraseña incorrecto");
             }
 
             $id_usuario = $datauser[0]['id_usu'];
@@ -637,7 +637,7 @@ switch ($condi) {
                         }
                     } else {
                         http_response_code(200);
-                        echo json_encode(['Usuario o contraseña incorrecto', '0', false]);
+                        echo json_encode(['Usuario / contraseña incorrecto', '0', false]);
                     }
                 } else {
                     http_response_code(400);

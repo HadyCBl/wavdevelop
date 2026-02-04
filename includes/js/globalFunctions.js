@@ -222,7 +222,7 @@ function showRenewModalSession(
                     Swal.fire({
                       icon: response.icon || "error",
                       title: response.title || "Error de Autenticación",
-                      text: response[1] || "Usuario o contraseña incorrectos",
+                      text: response[1] || "Usuario / contraseña incorrectos",
                       showCancelButton: true,
                       confirmButtonText: "Intentar de Nuevo",
                       cancelButtonText: "Cancelar",
