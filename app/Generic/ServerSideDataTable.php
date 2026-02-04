@@ -12,7 +12,7 @@ use Exception;
  * Soporta consultas SQL personalizadas sin necesidad de crear vistas
  * 
  * @version 2.0
- * @author MicroSystemPlus
+ * @author WAVDEVELOP
  */
 class ServerSideDataTable
 {
