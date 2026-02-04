@@ -1,0 +1,32 @@
+views/Creditos/cre_pnsl/error_log
+views/Creditos/error_log
+src/cruds/error_log
+views/error_log
+views/admin/error_log
+views/Clientes/error_log
+src/error_log
+views/Clientes/reportes/error_log
+desktop.ini
+.env
+/logs/*
+!/logs/.gitkeep
+logs/errores.log
+.vscode
+.idea
+/vendor/
+/node_modules/
+node_modules/
+/.webpack-cache/
+
+# Archivos de configuración local
+/.htaccess
+/.htaccess.synced
+
+/src/API/node_modules
+/src/API/node_modules
+/src/API/node_modules
+/src/API/package-lock.json
+
+# Composer installation tracking
+.composer.installed
+**/error_log

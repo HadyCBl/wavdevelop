@@ -1,0 +1,6 @@
+# Ignorar todos los archivos subidos
+uploads/*
+
+# Pero mantener la estructura de carpetas
+!uploads/.gitkeep
+!.gitignore

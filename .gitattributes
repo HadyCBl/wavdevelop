@@ -1,0 +1,28 @@
+# Archivos comprimidos NUNCA deben modificarse
+*.gz binary
+*.br binary
+
+# Imágenes y fuentes
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Archivos de código: normalizar line endings
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.php text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+
+# Archivos de configuración
+.htaccess text eol=lf
+.editorconfig text eol=lf

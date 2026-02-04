@@ -1,0 +1,248 @@
+{* Variables disponibles: $services, $nomenclaturaContable *}
+<div class="min-h-screen bg-base-200 p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto">
+        {* Header Section *}
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-base-content mb-2">
+                <i class="fas fa-shield-alt mr-3"></i>Servicios de Seguros
+            </h1>
+            <p class="text-base-content/70">Gestiona los servicios y sus costos asociados</p>
+        </div>
+
+        {* Form Card *}
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    {if isset($currentService) && $currentService->id}Editar Servicio{else}Nuevo Servicio{/if}
+                </h2>
+
+                <form id="servicioForm" method="{if isset($currentService) && $currentService->id}PUT{else}POST{/if}"
+                    action="api/seguros/servicios">
+                    <input type="hidden" name="csrf_token" id="csrf_token" value="{$csrf_token}">
+                    <input type="hidden" name="id" id="id" value="{$currentService->id ?? ''}">
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {* Nombre del Servicio *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-tag mr-2"></i>Nombre del Servicio
+                                </span>
+                            </label>
+                            <input type="text" name="nombre" id="nombre" value="{$currentService->nombre ?? ''}"
+                                placeholder="Ej: Seguro contra incendios" required
+                                class="input input-bordered w-full focus:input-primary">
+                        </div>
+
+                        {* Descripción *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-align-left mr-2"></i>Descripción
+                                </span>
+                            </label>
+                            <input type="text" name="descripcion" id="descripcion"
+                                value="{$currentService->descripcion ?? ''}" placeholder="Descripción del servicio"
+                                required class="input input-bordered w-full focus:input-primary">
+                        </div>
+
+                        {* Costo *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-dollar-sign mr-2"></i>Costo
+                                </span>
+                            </label>
+                            <input type="number" name="costo" id="costo" value="{$currentService->costo ?? ''}"
+                                step="0.01" placeholder="0.00" required
+                                class="input input-bordered w-full focus:input-primary">
+                        </div>
+
+                        {* Cuenta Contable *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-calculator mr-2"></i>Cuenta Contable
+                                </span>
+                            </label>
+                            <select name="cuenta_contable" id="cuenta_contable" required
+                                class="select select-bordered w-full focus:select-primary">
+                                <option value="" selected disabled>Seleccione una cuenta</option>
+                                {php $currentGroupOpen = false}
+                                {if count($nomenclaturaContable) > 0}
+                                {foreach $nomenclaturaContable as $cuenta}
+                                {php $level = (int) (strlen($cuenta->ccodcta) / 2)}
+                                {php $indent = str_repeat('&nbsp;', max(0, $level - 1) * 4)}
+
+                                {if ($cuenta->tipo ?? '') === 'R'}
+                                {if $currentGroupOpen}</optgroup>{/if}
+                                <optgroup label="{$indent|noescape}{$cuenta->cdescrip}">
+                                    {php $currentGroupOpen = true}
+                                    {else}
+                                    {php $selected = (isset($currentService->id_nomenclatura) &&
+                                    (int)$currentService->id_nomenclatura === (int)$cuenta->id) ? ' selected' : ''}
+                                    <option value="{$cuenta->id}" {$selected}>
+                                        {$indent|noescape}{$cuenta->ccodcta} - {$cuenta->cdescrip}
+                                    </option>
+                                    {/if}
+                                    {/foreach}
+                                    {if $currentGroupOpen}
+                                </optgroup>{/if}
+                                {else}
+                                <option value="">No hay cuentas contables disponibles</option>
+                                {/if}
+                            </select>
+                        </div>
+
+                        {* edad minima *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-dollar-sign mr-2"></i>Edad Mínima
+                                </span>
+                            </label>
+                            <input type="number" name="edad_minima" id="edad_minima"
+                                value="{$currentService->edad_minima ?? ''}" step="1" placeholder=""
+                                class="input input-bordered w-full focus:input-primary">
+                        </div>
+                        {* edad maxima *}
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-dollar-sign mr-2"></i>Edad Máxima
+                                </span>
+                            </label>
+                            <input type="number" name="edad_maxima" id="edad_maxima"
+                                value="{$currentService->edad_maxima ?? ''}" step="1" placeholder=""
+                                class="input input-bordered w-full focus:input-primary">
+                        </div>
+                        {* notas *}
+                        <div class="form-control lg:col-span-2">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i class="fas fa-align-left mr-2"></i>Notas
+                                </span>
+                            </label>
+                            <input type="text" name="notas" id="notas" value="{$currentService->notas ?? ''}"
+                                placeholder="Notas adicionales" class="input input-bordered w-full focus:input-primary">
+                        </div>
+                    </div>
+
+                    <div class="card-actions justify-end mt-8">
+                        <button type="button" onclick="submitForm('#servicioForm', {
+                            confirmMessage: '¿Está seguro de que desea guardar este servicio?'
+                            });" class="btn btn-primary gap-2">
+                            <i class="fas fa-save"></i>
+                            {if isset($currentService) && $currentService->id}Actualizar Servicio{else}Guardar
+                            Servicio{/if}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {* Table Section *}
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-6">
+                    <i class="fas fa-list mr-2"></i>Listado de Servicios
+                </h2>
+
+                {if count($services) > 0}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full" id="tableServices">
+                        <thead>
+                            <tr>
+                                <th class="bg-primary text-primary-content">#</th>
+                                <th class="bg-primary text-primary-content">
+                                    <i class="fas fa-tag mr-2"></i>Nombre
+                                </th>
+                                <th class="bg-primary text-primary-content">
+                                    <i class="fas fa-align-left mr-2"></i>Descripción
+                                </th>
+                                <th class="bg-primary text-primary-content">
+                                    <i class="fas fa-dollar-sign mr-2"></i>Costo
+                                </th>
+                                <th class="bg-primary text-primary-content text-center">
+                                    <i class="fas fa-cog mr-2"></i>Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $services as $key => $service}
+                            <tr class="hover">
+                                <td class="font-semibold">{$key+1}</td>
+                                <td class="font-medium">{$service->nombre}</td>
+                                <td>{$service->descripcion}</td>
+                                <td>
+                                    <div class="badge badge-success gap-2">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        {$service->costo}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="join">
+                                        <button class="btn btn-sm btn-info join-item gap-2" onclick="loadModuleView('#cuadro', {
+                                                route: 'api/seguros/servicios/edit/{$service['id']}'
+                                            });">
+                                            <i class="fas fa-edit"></i>
+                                            Editar
+                                        </button>
+                                        <button class="btn btn-sm btn-error join-item gap-2" onclick="sendRequest({
+                                            url: 'api/seguros/servicios/{$service->id}', 
+                                            method: 'DELETE', 
+                                            confirmMessage: '¿Está seguro de eliminar el servicio {$service->nombre}?'
+                                            });">
+                                            <i class="fas fa-trash"></i>
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+                {else}
+                <div class="hero min-h-[300px] bg-base-200 rounded-lg">
+                    <div class="hero-content text-center">
+                        <div class="max-w-md">
+                            <div class="text-6xl mb-4">
+                                <i class="fas fa-inbox text-base-content/20"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-base-content">
+                                No hay servicios registrados
+                            </h3>
+                            <p class="py-6 text-base-content/70">
+                                Comience agregando un nuevo servicio utilizando el formulario anterior.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Destruir instancia previa de Select2 si existe
+        if ($('#cuenta_contable').data('select2')) {
+            $('#cuenta_contable').select2('destroy');
+        }
+
+        // Inicializar Select2
+        initSelect2('#cuenta_contable', {
+            dropdownParent: $('body'),
+            placeholder: 'Seleccione una cuenta contable'
+        });
+
+        // Establecer el valor si existe (para modo edición)
+        {if isset($currentService->id_nomenclatura) && $currentService->id_nomenclatura}
+        $('#cuenta_contable').val({$currentService->id_nomenclatura}).trigger('change');
+        {/if}
+
+        startValidationGeneric('#servicioForm');
+        convert_table_to_datatable('tableServices');
+    </script>
+</div>

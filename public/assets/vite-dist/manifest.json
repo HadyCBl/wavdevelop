@@ -1,0 +1,89 @@
+{
+  "_chunk_alpine.D-O2uL2K.js": {
+    "file": "js/chunk_alpine.D-O2uL2K.js",
+    "name": "alpine"
+  },
+  "_chunk_datatables.CVkwJyTm.js": {
+    "file": "js/chunk_datatables.CVkwJyTm.js",
+    "name": "datatables",
+    "imports": [
+      "_chunk_jquery.Cg98Jr1F.js"
+    ]
+  },
+  "_chunk_jquery.Cg98Jr1F.js": {
+    "file": "js/chunk_jquery.Cg98Jr1F.js",
+    "name": "jquery"
+  },
+  "_chunk_vendors.BgDCcFUb.js": {
+    "file": "js/chunk_vendors.BgDCcFUb.js",
+    "name": "vendors",
+    "imports": [
+      "_chunk_jquery.Cg98Jr1F.js"
+    ]
+  },
+  "includes/img/MICROSYSTEMW.png": {
+    "file": "images/MICROSYSTEMW.BRsLPXrv.png",
+    "src": "includes/img/MICROSYSTEMW.png"
+  },
+  "includes/js/vite_another.js": {
+    "file": "js/bundle_another.LYJM-ZOL.js",
+    "name": "another",
+    "src": "includes/js/vite_another.js",
+    "isEntry": true,
+    "imports": [
+      "_chunk_alpine.D-O2uL2K.js",
+      "_chunk_jquery.Cg98Jr1F.js",
+      "_chunk_datatables.CVkwJyTm.js",
+      "_chunk_vendors.BgDCcFUb.js"
+    ],
+    "css": [
+      "css/bundle_another.Cx7ZjWJQ.css"
+    ],
+    "assets": [
+      "images/MICROSYSTEMW.BRsLPXrv.png"
+    ]
+  },
+  "includes/js/vite_caja.js": {
+    "file": "js/bundle_caja.N6ju7a9d.js",
+    "name": "caja",
+    "src": "includes/js/vite_caja.js",
+    "isEntry": true
+  },
+  "includes/js/vite_comprasventas.js": {
+    "file": "js/bundle_comprasventas.CH1Wm5aU.js",
+    "name": "comprasventas",
+    "src": "includes/js/vite_comprasventas.js",
+    "isEntry": true
+  },
+  "includes/js/vite_otrosingresos.js": {
+    "file": "js/bundle_otrosingresos.l0sNRNKZ.js",
+    "name": "otrosingresos",
+    "src": "includes/js/vite_otrosingresos.js",
+    "isEntry": true
+  },
+  "includes/js/vite_reportes.js": {
+    "file": "js/bundle_reportes.5YSVfRpA.js",
+    "name": "reportes",
+    "src": "includes/js/vite_reportes.js",
+    "isEntry": true,
+    "imports": [
+      "_chunk_vendors.BgDCcFUb.js",
+      "_chunk_jquery.Cg98Jr1F.js"
+    ]
+  },
+  "includes/js/vite_shared.js": {
+    "file": "js/bundle_shared.Dmu1o2ca.js",
+    "name": "shared",
+    "src": "includes/js/vite_shared.js",
+    "isEntry": true,
+    "imports": [
+      "_chunk_datatables.CVkwJyTm.js",
+      "_chunk_alpine.D-O2uL2K.js",
+      "_chunk_vendors.BgDCcFUb.js",
+      "_chunk_jquery.Cg98Jr1F.js"
+    ],
+    "css": [
+      "css/bundle_shared.DggWYEz6.css"
+    ]
+  }
+}

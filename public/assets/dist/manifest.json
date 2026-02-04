@@ -1,0 +1,9 @@
+{
+  "another.css": "/public/assets/dist/css/bundle_another.css",
+  "another.js": "/public/assets/dist/js/bundle_another.js",
+  "caja.js": "/public/assets/dist/js/bundle_caja.js",
+  "shared.js": "/public/assets/dist/js/bundle_shared.js",
+  "otros_ingresos.js": "/public/assets/dist/js/bundle_otros_ingresos.js",
+  "compras_ventas.js": "/public/assets/dist/js/bundle_compras_ventas.js",
+  "reportes.js": "/public/assets/dist/js/bundle_reportes.js"
+}

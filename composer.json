@@ -1,0 +1,41 @@
+{
+    "name": "sotecpro/microsystem",
+    "description": "Proyecto",
+    "type": "project",
+    "license": "MIT",
+    "scripts": {
+        "start": "start php -S localhost:3000"
+    },
+    "autoload": {
+        "files": [
+            "includes/Config/helpers.php"
+        ],
+        "psr-4": {
+            "Creditos\\Utilidades\\": "src/funcphp/creditos/",
+            "App\\Functions\\": "src/funcphp/",
+            "App\\": "includes/Config/",
+            "App\\Generic\\": "src/clases/",
+            "App\\Utils\\": "src/Utils/",
+            "Micro\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "sotecpro"
+        }
+    ],
+    "minimum-stability": "beta",
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.25",
+        "luecano/numero-a-letras": "^3.0",
+        "vlucas/phpdotenv": "^5.5",
+        "phpoffice/phpword": "^1.2",
+        "firebase/php-jwt": "^6.11",
+        "czproject/git-php": "^4.3",
+        "ably/ably-php": "^1.1",
+        "nikic/fast-route": "^2.0@beta",
+        "fpdf/fpdf": "^1.86",
+        "latte/latte": "3.1",
+        "illuminate/database": "10.0"
+    }
+}

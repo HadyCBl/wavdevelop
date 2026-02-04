@@ -1,0 +1,70 @@
+<style>
+    .small-font th,
+    .small-font td {
+        font-size: 12px;
+    }
+</style>
+<div class="modal fade" id="buscar_cli_all" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Búsqueda De Clientes Naturales y Jurídicos</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table id="tb_buscaClientAll" class="table table-striped nowrap  table-sm small-font" style="width: 100%;">
+            <thead>
+              <tr>
+                <th scope="col">Codigo</th>
+                <th scope="col">Nombre Completo</th>
+                <th scope="col">No. Identificación</th>
+                <th scope="col">Nacimiento</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="categoria_tb">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+    $("#tb_buscaClientAll").DataTable({
+      "processing": true,
+      "serverSide": true,
+      "sAjaxSource": "../src/server_side/clientes_all.php",
+      "columnDefs": [{
+        "data": 0,
+        "targets": 4,
+        render: function(data, type, row) {
+          return `<button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="printdiv2('#cuadro','${data}'); " >Aceptar</button>`;
+        }
+
+      }, ],
+      "bDestroy": true,
+      "language": {
+        "lengthMenu": "Mostrar _MENU_ registros",
+        "zeroRecords": "No se encontraron registros",
+        "info": " ",
+        "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+        "infoFiltered": "(filtrado de un total de: _MAX_ registros)",
+        "sSearch": "Buscar: ",
+        "oPaginate": {
+          "sFirst": "Primero",
+          "sLast": "Ultimo",
+          "sNext": "Siguiente",
+          "sPrevious": "Anterior"
+        },
+        "sProcessing": "Procesando..."
+      }
+
+    });
+  });
+</script>

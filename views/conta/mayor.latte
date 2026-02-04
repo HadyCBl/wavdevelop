@@ -1,0 +1,236 @@
+<div class="modern-ui card border-0 shadow-sm ">
+    <div class="card-header py-3" style="background: linear-gradient(135deg, #1d65d1 0%, #4b5c7a 100%);">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-filter me-2 fs-5 text-white"></i>
+            <h5 class="mb-0 fw-bold text-white">Libro Mayor - Filtros de Búsqueda</h5>
+        </div>
+    </div>
+    <div class="card-body p-4" id="divBody" x-data="{
+     agencyFilter: 'anyofi',
+     fondoFilter: 'allf',
+     isLevelOne: {$permissions->isLevelOne($permissions::LIBRO_MAYOR) ? 'true' : 'false'},
+     incluirSaldoInicial: false
+    }">
+        <div class="row g-4" id="formMayor">
+            <input type="hidden" name="csrf_token" value="{$csrf_token}">
+            <!-- Filtro por Oficina -->
+            <div class="col-sm-12 col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-header border-bottom-0 d-flex align-items-center py-3"
+                        style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+                        <i class="fa-solid fa-building text-white me-2"></i>
+                        <h6 class="mb-0 fw-semibold text-white">Oficina</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            {if $permissions->isLevelOne($permissions::LIBRO_MAYOR)}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="ragencia" id="allofi" value="allofi"
+                                    x-model="agencyFilter">
+                                <label for="allofi" class="form-check-label text-muted">
+                                    <i class="fa-solid fa-layer-group me-1"></i> Consolidado
+                                </label>
+                            </div>
+                            {/if}
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="ragencia" id="anyofi" value="anyofi"
+                                    x-model="agencyFilter" checked>
+                                <label for="anyofi" class="form-check-label text-muted">
+                                    <i class="fa-solid fa-building-circle-check me-1"></i> Por Agencia
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="codofi" class="form-label text-muted small fw-semibold mb-2">
+                                <i class="fa-solid fa-building-user me-1"></i> Agencia
+                            </label>
+                            <select class="form-select shadow-sm" id="codofi" name="codofi"
+                                :disabled="agencyFilter == 'allofi' || !isLevelOne"
+                                :required="agencyFilter == 'anyofi'">
+                                <option value="0" disabled>Seleccione una agencia</option>
+                                {foreach $agencias as $ofi}
+                                <option value="{$ofi->id_agencia}" {if $ofi->id_agencia==$idagencia}selected{/if}>
+                                    {$ofi->cod_agenc} - {$ofi->nom_agencia}
+                                </option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtro por Fuente de Fondos -->
+            <div class="col-sm-12 col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-header border-bottom-0 d-flex align-items-center py-3"
+                        style="background: linear-gradient(135deg, #06beb6 0%, #48b1bf 100%);">
+                        <i class="fa-solid fa-sack-dollar text-white me-2"></i>
+                        <h6 class="mb-0 fw-semibold text-white">Fuente de Fondos</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="rfondos" id="allf" value="allf"
+                                    checked x-model="fondoFilter">
+                                <label for="allf" class="form-check-label text-muted">
+                                    <i class="fa-solid fa-globe me-1"></i> Todos los fondos
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="rfondos" id="anyf" value="anyf"
+                                    x-model="fondoFilter">
+                                <label for="anyf" class="form-check-label text-muted">
+                                    <i class="fa-solid fa-filter-circle-dollar me-1"></i> Fondo específico
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="fondoid" class="form-label text-muted small fw-semibold mb-2">
+                                <i class="fa-solid fa-money-bill-trend-up me-1"></i> Fondo
+                            </label>
+                            <select class="form-select shadow-sm" id="fondoid" :disabled="fondoFilter == 'allf'"
+                                name="fondoid" :required="fondoFilter == 'anyf'">
+                                <option value="0" disabled selected>Seleccione un fondo</option>
+                                {foreach $fondos as $fon}
+                                <option value="{$fon->id}">{$fon->descripcion}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Filtro por Fechas -->
+            <div class="col-sm-12 col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-header border-bottom-0 d-flex align-items-center py-3"
+                        style="background: linear-gradient(135deg, #473f35 0%, #5c5a52 100%);">
+                        <i class="fa-solid fa-calendar-days text-white me-2"></i>
+                        <h6 class="mb-0 fw-semibold text-white">Rango de Fechas</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="finicio" class="form-label text-muted small fw-semibold">
+                                <i class="fa-solid fa-calendar-check me-1"></i> Fecha Inicial
+                            </label>
+                            <input type="date" class="form-control form-control-lg shadow-sm" id="finicio"
+                                name="finicio" min="1950-01-01" value="{date('Y-m-d')}" max="{date('Y-m-d')}" required>
+                        </div>
+
+                        <div>
+                            <label for="ffin" class="form-label text-muted small fw-semibold">
+                                <i class="fa-solid fa-calendar-xmark me-1"></i> Fecha Final
+                            </label>
+                            <input type="date" class="form-control form-control-lg shadow-sm" id="ffin" name="ffin"
+                                min="1950-01-01" value="{date('Y-m-d')}" max="{date('Y-m-d')}" required>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="incluirSaldoInicial"
+                                    name="incluirSaldoInicial" value="1" x-model="incluirSaldoInicial">
+                                <label class="form-check-label text-muted fw-semibold" for="incluirSaldoInicial">
+                                    <i class="fa-solid fa-money-bill-wave me-1"></i> ¿Incluir saldo inicial?
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtro por Cuentas -->
+            <div class="col-sm-12 col-md-12">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-header border-bottom-0 d-flex align-items-center py-3"
+                        style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);">
+                        <i class="fa-solid fa-book text-white me-2"></i>
+                        <h6 class="mb-0 fw-semibold text-white">Cuentas Contables</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info border-0 shadow-sm mb-3" role="alert">
+                            <div class="d-flex align-items-start">
+                                <i class="fa-solid fa-circle-info me-2 mt-1"></i>
+                                <div class="small">
+                                    <strong>Nota:</strong> Si selecciona una cuenta de resumen, se generará el mayor de
+                                    todas las cuentas de detalle asociadas a esta.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="cuenta_contable" class="form-label text-muted small fw-semibold mb-2">
+                                <i class="fa-solid fa-list-ol me-1"></i> Cuenta Contable
+                            </label>
+                            <select name="cuenta_contable" id="cuenta_contable" required class="form-select shadow-sm">
+                                <option value="">Seleccione una cuenta</option>
+                                {if count($nomenclaturaContable) > 0}
+                                {foreach $nomenclaturaContable as $cuenta}
+                                {php $level = (int) (strlen($cuenta->ccodcta) / 2)}
+                                {php $indent = str_repeat('&nbsp;', max(0, $level - 1) * 2)}
+                                <option value="{$cuenta->id}">
+                                    {$indent|noescape}{$cuenta->ccodcta} - {$cuenta->cdescrip}
+                                </option>
+                                {/foreach}
+                                {else}
+                                <option value="">No hay cuentas disponibles</option>
+                                {/if}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    {* <button type="button" class="btn btn-danger btn-lg px-5 shadow"
+                        style="background: linear-gradient(135deg, #f85032 0%, #e73827 100%); border: none;"
+                        title="Generar Libro Mayor en PDF"
+                        onclick="reportes([[`finicio`,`ffin`],[`codofi`,`fondoid`,`cuenta_contable`,`incluirSaldoInicial`],[`rcuentas`,`rfondos`,`ragencia`],[getAlpineData('#divBody','incluirSaldoInicial')]],`pdf`,37,0,1)">
+                        <i class="fa-solid fa-file-pdf me-2"></i>
+                        <span class="fw-semibold">Generar PDF</span>
+                    </button>
+
+                    <button type="button" class="btn btn-success btn-lg px-5 shadow"
+                        style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); border: none;"
+                        title="Generar Libro Mayor en Excel"
+                        onclick="reportes([[`finicio`,`ffin`],[`codofi`,`fondoid`,`cuenta_contable`,`incluirSaldoInicial`],[`rcuentas`,`rfondos`,`ragencia`],[getAlpineData('#divBody','incluirSaldoInicial')]],`xlsx`,`libro_mayor_main`,1)">
+                        <i class="fa-solid fa-file-excel me-2"></i>
+                        <span class="fw-semibold">Generar Excel</span>
+                    </button> *}
+                    <button type="button" class="btn btn-danger btn-lg px-5 shadow"
+                        style="background: linear-gradient(135deg, #f85032 0%, #e73827 100%); border: none;"
+                        title="Generar Libro Mayor en PDF"
+                        onclick="reporteManager.generarReporte('contabilidad/libro_mayor', '#formMayor', { tipo: 'show' });">
+                        <i class="fa-solid fa-file-pdf me-2"></i>
+                        <span class="fw-semibold">Generar PDF</span>
+                    </button>
+
+                    <button type="button" class="btn btn-success btn-lg px-5 shadow"
+                        style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); border: none;"
+                        title="Generar Libro Mayor en Excel"
+                        onclick="reporteManager.generarReporte('contabilidad/libro_mayor', '#formMayor', { tipo: 'xlsx' });">
+                        <i class="fa-solid fa-file-excel me-2"></i>
+                        <span class="fw-semibold">Generar Excel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        initSelect2('#cuenta_contable', {
+            dropdownParent: $('body'),
+            placeholder: 'Seleccione una cuenta contable',
+            width: '100%'
+        });
+
+        inicializarValidacionAutomaticaGeneric('#formMayor');
+    </script>
+</div>

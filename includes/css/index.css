@@ -1,0 +1,270 @@
+/* Imports necesarios */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap") layer(base);
+@import url("datatables.net-dt");
+@import "tom-select/dist/css/tom-select.css";
+@import "select2/dist/css/select2.css";
+@import "tailwindcss";
+
+/* Plugin de DaisyUI */
+@plugin "daisyui";
+
+/* Variante personalizada para modo oscuro */
+@custom-variant dark (&:is(.dark *));
+
+/* Configuración base */
+@layer base {
+  body {
+    @apply relative font-['Outfit',sans-serif] bg-gray-50 dark:bg-gray-900;
+  }
+}
+
+/* Estilos personalizados del sidebar */
+@layer components {
+  /* Scrollbar personalizado moderno */
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-blue-500/30 rounded-full;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    @apply bg-blue-500/50;
+  }
+  
+  /* Animaciones suaves */
+  .sidebar-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Efectos hover mejorados */
+  .menu-hover-effect {
+    @apply hover:scale-[1.01] active:scale-[0.99] transition-transform duration-200;
+  }
+
+  /* Ocultar marcadores de summary por defecto */
+  details summary {
+    list-style: none;
+  }
+  
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/*PARA EL LOADER DE MS START*/
+
+/* estilos para el efecto loader--------------------- */
+.loading--show {
+  display: flex;
+}
+
+.loading--hide {
+  display: none;
+}
+
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(9, 13, 13, 0.8);
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+}
+
+.loader-container .loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  border: solid 4px transparent;
+  border-top-color: #0dac77;
+  border-left-color: #0dac77;
+  border-radius: 50%;
+  animation: loader 1.4s linear infinite;
+}
+
+.loader-container .loader2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 180px;
+  height: 180px;
+  border: solid 4px transparent;
+  border-top-color: #0b7bfa;
+  border-left-color: #0b7bfa;
+  border-radius: 50%;
+  animation: loader2 1.2s both infinite;
+}
+
+.loaderimg {
+  width: 140px;
+  height: 64px;
+  background-image: url("../img/MICROSYSTEMW.png");
+
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+@keyframes loader {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes loader2 {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(-360deg);
+  }
+}
+
+/* Estilos personalizados para Select2 con Tailwind y DaisyUI */
+@layer components {
+  /* Contenedor principal de Select2 */
+  .select2-container--default .select2-selection--single {
+    @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white;
+    @apply rounded-md h-auto min-h-[42px] shadow-sm;
+    border-width: 1px;
+  }
+
+  .select2-container--default .select2-selection--single:focus,
+  .select2-container--default.select2-container--focus .select2-selection--single {
+    @apply border-blue-500 dark:border-blue-400 outline-none ring-2 ring-blue-500/20;
+  }
+
+  /* Placeholder */
+  .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  /* Texto seleccionado */
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    @apply text-gray-900 dark:text-white leading-normal;
+    padding-left: 12px;
+    padding-right: 20px;
+    line-height: 40px;
+  }
+
+  /* Flecha del dropdown */
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    @apply border-t-gray-500 dark:border-t-gray-400;
+  }
+
+  /* Dropdown */
+  .select2-container--default .select2-dropdown {
+    @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600;
+    @apply shadow-lg rounded-md;
+    border-width: 1px;
+  }
+
+  /* Campo de búsqueda */
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600;
+    @apply text-gray-900 dark:text-white rounded-md;
+    @apply focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
+    border-width: 1px;
+  }
+
+  /* Resultados */
+  .select2-container--default .select2-results__option {
+    @apply text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800;
+    padding: 8px 12px;
+  }
+
+  /* Hover en opciones */
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    @apply bg-blue-500 dark:bg-blue-600 text-white;
+  }
+
+  /* Opción seleccionada */
+  .select2-container--default .select2-results__option[aria-selected="true"] {
+    @apply bg-gray-100 dark:bg-gray-700;
+  }
+
+  /* Optgroup labels (headers) */
+  .select2-container--default .select2-results__group {
+    @apply font-bold text-blue-600 dark:text-blue-400 bg-gray-50 dark:bg-gray-900;
+    padding: 8px 12px;
+  }
+
+  /* Opciones dentro de optgroups */
+  .select2-container--default .select2-results__option--group {
+    padding-left: 0;
+  }
+
+  .select2-container--default .select2-results > .select2-results__options {
+    @apply bg-white dark:bg-gray-800;
+  }
+
+  /* No results */
+  .select2-container--default .select2-results__option--disabled {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  /* Clear button */
+  .select2-container--default .select2-selection--single .select2-selection__clear {
+    @apply text-gray-500 dark:text-gray-400;
+    @apply hover:text-red-600 dark:hover:text-red-400;
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+
+  /* Loading */
+  .select2-container--default .select2-results__message {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /* Multiple select */
+  .select2-container--default .select2-selection--multiple {
+    @apply bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600;
+    @apply text-gray-900 dark:text-white rounded-md min-h-[42px];
+    border-width: 1px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    @apply bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200;
+    @apply border-blue-300 dark:border-blue-700 rounded;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    @apply text-blue-600 dark:text-blue-400;
+    @apply hover:text-red-600 dark:hover:text-red-400;
+  }
+
+  /* Disabled state */
+  .select2-container--default.select2-container--disabled .select2-selection--single {
+    @apply bg-gray-100 dark:bg-gray-800 cursor-not-allowed opacity-60;
+  }
+}
+
+/*PARA EL LOADER DE MS END*/

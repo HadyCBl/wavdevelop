@@ -1,0 +1,1249 @@
+<div class="container mx-auto p-4 sm:p-6" x-data="auxiliosApp()">
+    <input type="hidden" name="csrf_token" value="{$csrf_token}">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-base-content">Gestión de Auxilios Póstumos</h1>
+        <p class="text-base-content/70 mt-2">Administra solicitudes, aprobaciones y pagos de auxilios</p>
+    </div>
+
+    <!-- Tabs de navegación usando DaisyUI -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div role="tablist" class="tabs tabs-bordered">
+            <button @click="activeTab = 'buscar'" :class="activeTab === 'buscar' ? 'tab-active' : ''"
+                class="tab tab-lg">
+                <span class="flex items-center gap-2">
+                    <span>🔍</span>
+                    <span class="hidden sm:inline">Buscar Cuenta</span>
+                </span>
+            </button>
+            <button @click="activeTab = 'solicitudes'" :class="activeTab === 'solicitudes' ? 'tab-active' : ''"
+                class="tab tab-lg">
+                <span class="flex items-center gap-2">
+                    <span>📋</span>
+                    <span class="hidden sm:inline">Solicitudes</span>
+                </span>
+            </button>
+            <button @click="activeTab = 'aprobadas'" :class="activeTab === 'aprobadas' ? 'tab-active' : ''"
+                class="tab tab-lg">
+                <span class="flex items-center gap-2">
+                    <span>✅</span>
+                    <span class="hidden sm:inline">Aprobadas</span>
+                </span>
+            </button>
+            <button @click="activeTab = 'historial'" :class="activeTab === 'historial' ? 'tab-active' : ''"
+                class="tab tab-lg">
+                <span class="flex items-center gap-2">
+                    <span>📊</span>
+                    <span class="hidden sm:inline">Historial</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- Tab: Buscar Cuenta -->
+        <div x-show="activeTab === 'buscar'" class="p-4 sm:p-6">
+            <div class="max-w-4xl">
+                <h2 class="text-xl font-semibold mb-4 text-base-content">Buscar Cuenta del Asegurado</h2>
+
+                <!-- Búsqueda -->
+                <div class="mb-4">
+                    <label class="label">
+                        <span class="label-text">Buscar por nombre o identificacion</span>
+                    </label>
+                    <div class="join w-full">
+                        <input type="text" x-model="searchTerm" @input.debounce.100ms="buscarCuentas()"
+                            placeholder="Ej: Juan Pérez o 001-1234567-8" class="input input-bordered join-item flex-1">
+                        <button @click="buscarCuentas()" :disabled="loading" class="btn btn-primary join-item">
+                            <span x-show="!loading">🔍 Buscar</span>
+                            <span x-show="loading" class="loading loading-spinner"></span>
+                            <span x-show="loading">Buscando...</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resultados de búsqueda -->
+                <div x-show="cuentasEncontradas.length > 0" class="mt-6">
+                    <h3 class="text-lg font-medium mb-3 text-base-content">Cuentas Vigentes Encontradas</h3>
+                    <div class="space-y-3">
+                        <template x-for="cuenta in cuentasEncontradas" :key="cuenta.id">
+                            <div class="card bg-base-200 hover:shadow-lg transition-shadow">
+                                <div class="card-body">
+                                    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                                        <div class="flex-1">
+                                            <h4 class="card-title text-base-content" x-text="cuenta.cliente.nombre">
+                                            </h4>
+                                            <p class="text-sm text-base-content/70"
+                                                x-text="'Identificacion: ' + cuenta.cliente.identificacion"></p>
+                                            <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                                <div>
+                                                    <span class="text-base-content/70">Servicio:</span>
+                                                    <span class="font-medium text-base-content"
+                                                        x-text="cuenta.servicio.nombre"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="text-base-content/70">Monto Auxilio:</span>
+                                                    <span class="font-medium text-success"
+                                                        x-text="formatMoney(cuenta.servicio.monto_auxilio)"></span>
+                                                </div>
+                                            </div>
+                                            <template x-if="cuenta.renovacion_vigente">
+                                                <div class="alert alert-success mt-2">
+                                                    <span class="text-sm">✓ Renovación vigente hasta: <span
+                                                            class="font-medium"
+                                                            x-text="cuenta.renovacion_vigente.fecha_fin"></span></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!cuenta.renovacion_vigente">
+                                                <div class="alert alert-warning mt-2">
+                                                    <span class="text-sm">⚠️ No hay renovación vigente
+                                                        actualmente</span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <button @click="seleccionarCuenta(cuenta)" class="btn btn-primary">
+                                            Crear Solicitud
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Modal: Crear Solicitud usando DaisyUI -->
+                <dialog x-bind:open="showModalSolicitud" class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box w-11/12 max-w-4xl bg-base-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-base-content">Nueva Solicitud de Auxilio</h2>
+                            <button @click="showModalSolicitud = false" class="btn btn-sm btn-circle btn-ghost">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <form @submit.prevent="crearSolicitud()" id="formSolicitud" action="api/seguros/auxilios"
+                            data-method="POST">
+                            <!-- Información del asegurado -->
+                            <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                            <input type="hidden" name="id_cuenta" x-model="formulario.id_cuenta">
+                            <input type="hidden" name="monto_aprobado" x-model="formulario.monto_aprobado">
+                            <div class="alert alert-info mb-6">
+                                <div class="w-full">
+                                    <h3 class="font-semibold mb-2">Asegurado</h3>
+                                    <p class="font-medium" x-text="cuentaSeleccionada?.cliente?.nombre"></p>
+                                    <p class="text-sm opacity-70"
+                                        x-text="'Identificación: ' + cuentaSeleccionada?.cliente?.identificacion"></p>
+                                    <p class="text-sm opacity-70">
+                                        <span>Servicio: </span>
+                                        <span x-text="cuentaSeleccionada?.servicio?.nombre"></span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Datos del fallecimiento -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Fecha de Fallecimiento *</span>
+                                    </label>
+                                    <input type="date" x-model="formulario.fecha_fallece" name="fecha_fallece"
+                                        @change="verificarRenovacionVigente()" required class="input input-bordered">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Fecha de Solicitud *</span>
+                                    </label>
+                                    <input type="date" x-model="formulario.fecha_solicitud" required
+                                        name="fecha_solicitud" class="input input-bordered">
+                                </div>
+                            </div>
+
+                            <!-- Verificación de renovación -->
+                            <div x-show="renovacionValidada" class="mb-6">
+                                <div x-show="renovacionValida" class="alert alert-success">
+                                    <div>
+                                        <p class="font-medium">✓ Renovación vigente en la fecha de fallecimiento</p>
+                                        <p class="text-sm mt-1">Monto aprobado automáticamente: <span
+                                                class="font-semibold"
+                                                x-text="formatMoney(formulario.monto_aprobado)"></span></p>
+                                    </div>
+                                </div>
+                                <div x-show="!renovacionValida" class="alert alert-error">
+                                    <div>
+                                        <p class="font-medium">✗ No hay renovación vigente en la fecha de fallecimiento
+                                        </p>
+                                        <p class="text-sm mt-1">No se puede procesar la solicitud</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Notas -->
+                            <div class="form-control mb-6" x-show="renovacionValida">
+                                <label class="label">
+                                    <span class="label-text">Notas u Observaciones</span>
+                                </label>
+                                <textarea x-model="formulario.notas" name="notas" rows="3"
+                                    class="textarea textarea-bordered"
+                                    placeholder="Información adicional sobre la solicitud..."></textarea>
+                            </div>
+
+                            <!-- Documentos -->
+                            <div class="form-control mb-6" x-show="renovacionValida">
+                                <label class="label">
+                                    <span class="label-text">Documentos Requeridos</span>
+                                </label>
+                                <div
+                                    class="border-2 border-dashed border-base-300 rounded-lg p-6 hover:border-primary transition-colors">
+                                    <input type="file" name="documentos" @change="handleFileUpload($event)" multiple
+                                        accept=".pdf,.jpg,.jpeg,.png" class="hidden" id="fileUpload">
+                                    <label for="fileUpload" class="cursor-pointer block text-center">
+                                        <svg class="mx-auto h-12 w-12 text-base-content/40" stroke="currentColor"
+                                            fill="none" viewBox="0 0 48 48">
+                                            <path
+                                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <p class="mt-1 text-sm text-base-content/70">
+                                            <span class="font-semibold text-primary">Click para subir archivos</span> o
+                                            arrastra aquí
+                                        </p>
+                                        <p class="text-xs text-base-content/50">PDF, JPG, PNG hasta 10MB</p>
+                                    </label>
+                                </div>
+
+                                <!-- Lista de archivos -->
+                                <div x-show="formulario.documentos.length > 0" class="mt-4 space-y-2">
+                                    <template x-for="(doc, index) in formulario.documentos" :key="index">
+                                        <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-5 h-5 text-base-content/50" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-sm text-base-content" x-text="doc.nombre"></span>
+                                            </div>
+                                            <button type="button" @click="formulario.documentos.splice(index, 1)"
+                                                class="btn btn-ghost btn-sm btn-circle text-error">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="modal-action">
+                                <button type="button" @click="showModalSolicitud = false" class="btn btn-ghost">
+                                    Cancelar
+                                </button>
+                                <button type="submit" :disabled="!renovacionValida || loading" class="btn btn-primary">
+                                    <span x-show="!loading">Crear Solicitud</span>
+                                    <span x-show="loading" class="loading loading-spinner"></span>
+                                    <span x-show="loading">Procesando...</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <form method="dialog" class="modal-backdrop" @click="showModalSolicitud = false">
+                        <button>close</button>
+                    </form>
+                </dialog>
+            </div>
+        </div>
+
+        <!-- Tab: Solicitudes Pendientes -->
+        <div x-show="activeTab === 'solicitudes'" class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Solicitudes Pendientes de Aprobación</h2>
+                <button @click="cargarSolicitudes('solicitado')" class="btn btn-ghost btn-sm">
+                    🔄 Actualizar
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="auxilio in solicitudesPendientes" :key="auxilio.id">
+                    <div class="card bg-base-200 hover:shadow-lg transition-shadow">
+                        <div class="card-body">
+                            <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
+                                <div class="flex-1 w-full">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <span class="badge badge-warning badge-lg">Pendiente</span>
+                                        <span class="text-base-content/70 text-sm"
+                                            x-text="'Solicitud #' + auxilio.id"></span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Asegurado</p>
+                                            <p class="font-medium text-base-content"
+                                                x-text="auxilio.cuenta?.cliente?.nombre"></p>
+                                            <p class="text-sm text-base-content/50"
+                                                x-text="auxilio.cuenta?.cliente?.no_identifica"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Fecha Fallecimiento</p>
+                                            <p class="font-medium text-base-content" x-text="auxilio.fecha_fallece"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Monto Aprobado</p>
+                                            <p class="font-bold text-success text-lg"
+                                                x-text="formatMoney(auxilio.monto_aprobado)"></p>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="auxilio.notas" class="alert alert-info mb-4">
+                                        <div>
+                                            <p class="text-sm font-semibold">Notas:</p>
+                                            <p class="text-sm" x-text="auxilio.notas"></p>
+                                        </div>
+                                    </div>
+
+                                    <div x-show="auxilio.documentos?.length > 0" class="mb-4">
+                                        <p class="text-sm text-base-content/60 mb-2">Documentos adjuntos:</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <template x-for="doc in auxilio.documentos" :key="doc.id">
+                                                <a :href="'/api/seguros/auxilios/archivo/' + doc.ruta" target="_blank"
+                                                    class="badge badge-primary badge-lg gap-1">
+                                                    📄 <span x-text="doc.descripcion"></span>
+                                                </a>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <button @click="aprobarSolicitud(auxilio)" class="btn btn-success btn-sm">
+                                        ✓ Aprobar
+                                    </button>
+                                    <button @click="rechazarSolicitud(auxilio)" class="btn btn-error btn-sm">
+                                        ✗ Rechazar
+                                    </button>
+                                    <button @click="verDetalle(auxilio)" class="btn btn-ghost btn-sm">
+                                        👁️ Ver Detalle
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="solicitudesPendientes.length === 0" class="alert">
+                    <span class="text-base-content/70">No hay solicitudes pendientes</span>
+                </div>
+            </div>
+
+            <!-- Modal: Aprobar Solicitud -->
+            <dialog x-bind:open="showModalAprobar" class="modal modal-bottom sm:modal-middle">
+                <div class="modal-box w-11/12 max-w-2xl bg-base-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-base-content">Aprobar Solicitud de Auxilio</h2>
+                        <button @click="showModalAprobar = false" class="btn btn-sm btn-circle btn-ghost">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form @submit.prevent="guardarAprobacion()">
+                        <!-- Información del Auxilio -->
+                        <div class="card bg-gradient-to-r from-warning/10 to-success/10 border border-warning/30 mb-6">
+                            <div class="card-body p-5">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <h3 class="font-semibold text-base-content">Información de la Solicitud</h3>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Asegurado</p>
+                                        <p class="font-semibold text-base-content"
+                                            x-text="auxilioParaAprobar?.cuenta?.cliente?.nombre">
+                                        </p>
+                                        <p class="text-sm text-base-content/70"
+                                            x-text="auxilioParaAprobar?.cuenta?.cliente?.no_identifica"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Monto Original</p>
+                                        <p class="font-bold text-info text-xl"
+                                            x-text="formatMoney(auxilioParaAprobar?.monto_aprobado)"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Fecha Fallecimiento</p>
+                                        <p class="font-medium text-base-content"
+                                            x-text="auxilioParaAprobar?.fecha_fallece"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Servicio</p>
+                                        <p class="font-medium text-base-content"
+                                            x-text="auxilioParaAprobar?.cuenta?.servicio?.nombre"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campo de Monto a Aprobar -->
+                        <div class="card bg-base-200 mb-6">
+                            <div class="card-body p-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <h3 class="font-semibold text-base-content">Datos de Aprobación</h3>
+                                </div>
+
+                                <div class="form-control mb-4">
+                                    <label class="label">
+                                        <span class="label-text font-medium text-lg">Monto a Aprobar *</span>
+                                    </label>
+                                    <input type="number" x-model="formularioAprobacion.monto_aprobar" step="0.01"
+                                        min="0" required
+                                        class="input input-bordered input-lg input-success text-2xl font-bold"
+                                        placeholder="0.00">
+                                    <label class="label">
+                                        <span class="label-text-alt text-base-content/60">
+                                            Puede modificar el monto si es necesario
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {* <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Notas de Aprobación</span>
+                                    </label>
+                                    <textarea x-model="formularioAprobacion.notas_aprobacion" rows="3"
+                                        class="textarea textarea-bordered"
+                                        placeholder="Observaciones o justificación del monto aprobado..."></textarea>
+                                </div> *}
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="modal-action">
+                            <button type="button" @click="showModalAprobar = false" class="btn btn-ghost">
+                                Cancelar
+                            </button>
+                            <button type="submit" :disabled="loading" class="btn btn-success">
+                                <span x-show="!loading">✓ Aprobar Solicitud</span>
+                                <span x-show="loading" class="loading loading-spinner"></span>
+                                <span x-show="loading">Procesando...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <form method="dialog" class="modal-backdrop" @click="showModalAprobar = false">
+                    <button>close</button>
+                </form>
+            </dialog>
+        </div>
+
+        <!-- Tab: Aprobadas (Para Pago) -->
+        <div x-show="activeTab === 'aprobadas'" class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Solicitudes Aprobadas - Pendientes de Pago</h2>
+                <button @click="cargarSolicitudes('aprobado')" class="btn btn-ghost btn-sm">
+                    🔄 Actualizar
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="auxilio in solicitudesAprobadas" :key="auxilio.id">
+                    <div class="card bg-success/10 border border-success/30">
+                        <div class="card-body">
+                            <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
+                                <div class="flex-1 w-full">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <span class="badge badge-success badge-lg">Aprobado</span>
+                                        <span class="text-base-content/70 text-sm"
+                                            x-text="'Solicitud #' + auxilio.id"></span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Asegurado</p>
+                                            <p class="font-medium text-base-content"
+                                                x-text="auxilio.cuenta?.cliente?.short_name"></p>
+                                            <p class="text-sm text-base-content/50"
+                                                x-text="auxilio.cuenta?.cliente?.no_identifica"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Monto a Pagar</p>
+                                            <p class="font-bold text-success text-2xl"
+                                                x-text="formatMoney(auxilio.monto_aprobado)"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-base-content/60">Fecha solicitud</p>
+                                            <p class="font-medium text-base-content" x-text="auxilio.fecha_solicitud">
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button @click="registrarPago(auxilio)" class="btn btn-primary">
+                                    Registrar Pago
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="solicitudesAprobadas.length === 0" class="alert">
+                    <span class="text-base-content/70">No hay solicitudes aprobadas pendientes de pago</span>
+                </div>
+            </div>
+
+            <!-- Modal: Registrar Pago usando DaisyUI -->
+            <dialog x-bind:open="showModalPago" class="modal modal-bottom sm:modal-middle">
+                <div class="modal-box w-11/12 max-w-2xl bg-base-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-base-content">Registrar Pago de Auxilio</h2>
+                        <button @click="showModalPago = false" class="btn btn-sm btn-circle btn-ghost">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form @submit.prevent="guardarPago()" id="formPago" data-method="POST">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+
+                        <!-- Resumen del Auxilio -->
+                        <div class="card bg-gradient-to-r from-info/10 to-success/10 border border-info/30 mb-6">
+                            <div class="card-body p-5">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <h3 class="font-semibold text-base-content">Información del Auxilio</h3>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Beneficiario</p>
+                                        <p class="font-semibold text-base-content"
+                                            x-text="auxilioParaPago?.cuenta?.cliente?.short_name">
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60 mb-1">Monto a Pagar</p>
+                                        <p class="font-bold text-success text-2xl"
+                                            x-text="formatMoney(auxilioParaPago?.monto_aprobado)"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Datos del Pago -->
+                        <div class="card bg-base-200 mb-6">
+                            <div class="card-body p-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                        </path>
+                                    </svg>
+                                    <h3 class="font-semibold text-base-content">Datos del Pago</h3>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Fecha de Pago *</span>
+                                        </label>
+                                        <input type="date" x-model="formularioPago.fecha" required name="fecha_pago"
+                                            class="input input-bordered input-primary">
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Monto *</span>
+                                        </label>
+                                        <input type="number" x-model="formularioPago.monto" step="0.01" required
+                                            name="monto_pago" class="input input-bordered input-primary">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Forma de Pago *</span>
+                                        </label>
+                                        <select x-model="formularioPago.forma_pago" required name="forma_pago"
+                                            class="select select-bordered select-primary">
+                                            <option value="">Seleccione...</option>
+                                            <option value="efectivo">💵 Efectivo</option>
+                                            <option value="banco">🏦 Cheque</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">No. Documento</span>
+                                        </label>
+                                        <input type="text" x-model="formularioPago.numdoc" name="numdoc"
+                                            :required="formularioPago.forma_pago === 'efectivo'"
+                                            placeholder="Número de referencia" class="input input-bordered">
+                                    </div>
+
+                                    <div class="form-control md:col-span-2">
+                                        <label class="label flex-col items-start">
+                                            <span class="label-text font-medium mb-1">Concepto</span>
+                                        </label>
+                                        <input type="text" x-model="formularioPago.concepto" name="concepto" required
+                                            placeholder="Concepto del pago" class="input input-bordered">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Información Bancaria (Condicional) -->
+                        <div x-show="formularioPago.forma_pago === 'banco'"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 transform scale-95"
+                            x-transition:enter-end="opacity-100 transform scale-100"
+                            class="card bg-warning/10 border border-warning/30 mb-6">
+                            <div class="card-body p-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                        </path>
+                                    </svg>
+                                    <h3 class="font-semibold text-base-content">Información del Cheque</h3>
+                                </div>
+
+                                <div class="form-control mb-4">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Cuenta Bancaria *</span>
+                                    </label>
+                                    <select x-model="formularioPago.id_ctbbanco"
+                                        :required="formularioPago.forma_pago === 'banco'" name="id_ctbbanco"
+                                        class="select select-bordered select-warning">
+                                        <option value="">Seleccione una cuenta...</option>
+                                        <template x-for="cuenta in cuentasBancarias" :key="cuenta.id">
+                                            <option :value="cuenta.id"
+                                                x-text="cuenta.banco.nombre + ' - ' + cuenta.numcuenta">
+                                            </option>
+                                        </template>
+                                    </select>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">No. Cheque *</span>
+                                        </label>
+                                        <input type="text" x-model="formularioPago.numero_cheque" name="banco_numdoc"
+                                            :required="formularioPago.forma_pago === 'banco'" placeholder="Ej: 123456"
+                                            class="input input-bordered input-warning">
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Destinatario del Cheque *</span>
+                                        </label>
+                                        <input type="text" x-model="formularioPago.destinatario_cheque"
+                                            placeholder="Nombre del beneficiario" name="destinatario_cheque"
+                                            :required="formularioPago.forma_pago === 'banco'"
+                                            class="input input-bordered input-warning">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-action">
+                            <button type="button" @click="showModalPago = false" class="btn btn-ghost">
+                                Cancelar
+                            </button>
+                            <button type="submit" :disabled="loading" class="btn btn-primary">
+                                <span x-show="!loading">Registrar Pago</span>
+                                <span x-show="loading" class="loading loading-spinner"></span>
+                                <span x-show="loading">Procesando...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <form method="dialog" class="modal-backdrop" @click="showModalPago = false">
+                    <button>close</button>
+                </form>
+            </dialog>
+        </div>
+
+        <!-- Modal: Ver Detalle -->
+        <dialog x-bind:open="showModalDetalle" class="modal modal-middle">
+            <div class="modal-box modal-large bg-base-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-base-content">Detalle de Auxilio</h2>
+                    <button @click="showModalDetalle = false" class="btn btn-sm btn-circle btn-ghost">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div x-show="auxilioDetalle" class="space-y-4">
+                    <!-- Estado y Número -->
+                    <div class="flex items-center gap-3">
+                        <span class="badge badge-lg" :class="{
+                            'badge-warning': auxilioDetalle?.estado === 'solicitado',
+                            'badge-success': auxilioDetalle?.estado === 'aprobado' || auxilioDetalle?.estado === 'pagado',
+                            'badge-error': auxilioDetalle?.estado === 'rechazado'
+                        }" x-text="auxilioDetalle?.estado"></span>
+                        <span class="text-base-content/70 font-mono" x-text="'#' + auxilioDetalle?.id"></span>
+                    </div>
+
+                    <!-- Grid de 2 columnas: Asegurado y Auxilio -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Información del Asegurado -->
+                        <div class="card bg-base-200">
+                            <div class="card-body p-4">
+                                <h3 class="card-title text-base">👤 Asegurado</h3>
+                                <div class="space-y-2">
+                                    <div>
+                                        <p class="text-xs text-base-content/60">Nombre</p>
+                                        <p class="font-semibold text-sm"
+                                            x-text="auxilioDetalle?.cuenta?.cliente?.short_name"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60">Identificación</p>
+                                        <p class="font-mono text-sm"
+                                            x-text="auxilioDetalle?.cuenta?.cliente?.no_identifica">
+                                        </p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <p class="text-xs text-base-content/60">Servicio</p>
+                                            <p class="font-medium text-sm"
+                                                x-text="auxilioDetalle?.cuenta?.servicio?.nombre"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-base-content/60">Estado</p>
+                                            <span class="badge badge-sm badge-success"
+                                                x-text="auxilioDetalle?.cuenta?.estado"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Auxilio -->
+                        <div class="card bg-base-200">
+                            <div class="card-body p-4">
+                                <h3 class="card-title text-base">📄 Información del Auxilio</h3>
+                                <div class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <p class="text-xs text-base-content/60">Fecha Fallecimiento</p>
+                                            <p class="font-semibold text-sm" x-text="auxilioDetalle?.fecha_fallece"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-base-content/60">Fecha Solicitud</p>
+                                            <p class="font-semibold text-sm" x-text="auxilioDetalle?.fecha_solicitud">
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-base-content/60">Monto Aprobado</p>
+                                        <p class="text-xl font-bold text-success"
+                                            x-text="formatMoney(auxilioDetalle?.monto_aprobado)"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beneficiarios de la Cuenta -->
+                    <div x-show="auxilioDetalle?.cuenta?.beneficiarios?.length > 0" class="card bg-base-200">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-base">👥 Beneficiarios Registrados</h3>
+                            <div class="overflow-x-auto">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            {* <th>Parentesco</th> *}
+                                            <th>Identificacion</th>
+                                            <th>Porcentaje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="ben in auxilioDetalle?.cuenta?.beneficiarios" :key="ben.id">
+                                            <tr>
+                                                <td x-text="ben.nombres + ' ' + ben.apellidos"></td>
+                                                {* <td x-text="ben.parentesco"></td> *}
+                                                <td class="font-mono" x-text="ben.identificacion"></td>
+                                                <td>
+                                                    <span class="badge badge-sm"
+                                                        x-text="ben.pivot.porcentaje + '%'"></span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grid de 2 columnas: Notas y Documentos -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Notas -->
+                        <div x-show="auxilioDetalle?.notas" class="alert alert-info py-3">
+                            <div class="w-full">
+                                <p class="font-semibold mb-1 text-sm">📝 Notas</p>
+                                <p class="text-xs" x-text="auxilioDetalle?.notas"></p>
+                            </div>
+                        </div>
+
+                        <!-- Documentos -->
+                        <div x-show="auxilioDetalle?.documentos?.length > 0" class="card bg-base-200">
+                            <div class="card-body p-3">
+                                <h3 class="card-title text-sm">📎 Documentos</h3>
+                                <div class="flex flex-wrap gap-1">
+                                    <template x-for="doc in auxilioDetalle?.documentos" :key="doc.id">
+                                        <a :href="'/api/seguros/auxilios/archivo/' + doc.ruta" target="_blank"
+                                            class="btn btn-xs btn-outline">
+                                            📄 <span x-text="doc.descripcion"></span>
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Pago -->
+                    <div x-show="auxilioDetalle?.estado === 'pagado' && auxilioDetalle?.pagos?.length > 0"
+                        class="card bg-success/10 border border-success/30">
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-base text-success">💰 Información de Pago</h3>
+                            <template x-for="pago in auxilioDetalle?.pagos" :key="pago.id">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-sm text-base-content/60">Fecha de Pago</p>
+                                        <p class="font-semibold" x-text="pago.fecha"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-base-content/60">Monto Pagado</p>
+                                        <p class="text-xl font-bold text-success" x-text="formatMoney(pago.monto)"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-base-content/60">Forma de Pago</p>
+                                        <span class="badge badge-success" x-text="pago.forma_pago"></span>
+                                    </div>
+                                    <div x-show="pago.numdoc">
+                                        <p class="text-sm text-base-content/60">No. Documento</p>
+                                        <p class="font-mono" x-text="pago.numdoc"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Motivo de Rechazo -->
+                    <div x-show="auxilioDetalle?.estado === 'rechazado' && auxilioDetalle?.motivo_rechazo"
+                        class="alert alert-error py-3">
+                        <div class="w-full">
+                            <p class="font-semibold mb-1 text-sm">❌ Motivo de Rechazo</p>
+                            <p class="text-xs" x-text="auxilioDetalle?.motivo_rechazo"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-action">
+                    <button @click="showModalDetalle = false" class="btn btn-primary">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop" @click="showModalDetalle = false">
+                <button>close</button>
+            </form>
+        </dialog>
+
+        <!-- Tab: Historial -->
+        <div x-show="activeTab === 'historial'" class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-xl font-semibold text-base-content">Historial de Auxilios</h2>
+                <div class="flex gap-2">
+                    <select x-model="filtroEstado" @change="cargarHistorial()" class="select select-bordered select-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="pagado">Pagados</option>
+                        <option value="rechazado">Rechazados</option>
+                    </select>
+                    <button @click="cargarHistorial()" class="btn btn-ghost btn-sm">
+                        🔄 Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Asegurado</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="auxilio in historial" :key="auxilio.id">
+                            <tr>
+                                <td class="font-mono" x-text="auxilio.id"></td>
+                                <td x-text="auxilio.cuenta?.cliente?.short_name"></td>
+                                <td class="font-semibold" x-text="formatMoney(auxilio.monto_aprobado)"></td>
+                                <td>
+                                    <span :class="{
+                                        'badge-success': auxilio.estado === 'pagado',
+                                        'badge-error': auxilio.estado === 'rechazado'
+                                    }" class="badge badge-sm" x-text="auxilio.estado"></span>
+                                </td>
+                                <td x-text="auxilio.fecha_solicitud"></td>
+                                <td>
+                                    <button @click="verDetalle(auxilio)" class="btn btn-ghost btn-xs">
+                                        Ver detalle
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+
+                <div x-show="historial.length === 0" class="alert mt-4">
+                    <span class="text-base-content/70">No hay registros en el historial</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script n:syntax=off>
+    function auxiliosApp() {
+    return {
+        activeTab: 'buscar',
+        loading: false,
+        searchTerm: '',
+        cuentasEncontradas: [],
+        cuentaSeleccionada: null,
+        showModalSolicitud: false,
+        showModalPago: false,
+        showModalDetalle: false,
+        showModalAprobar: false,
+        auxilioDetalle: null,
+        auxilioParaAprobar: null,
+        renovacionValidada: false,
+        renovacionValida: false,
+        
+        // Estados
+        solicitudesPendientes: [],
+        solicitudesAprobadas: [],
+        historial: [],
+        filtroEstado: '',
+        auxilioParaPago: null,
+        cuentasBancarias: [],
+        
+        // Formularios
+        formulario: {
+            id_cuenta: null,
+            fecha_fallece: '',
+            fecha_solicitud: new Date().toISOString().split('T')[0],
+            monto_aprobado: 0,
+            notas: '',
+            documentos: []
+        },
+        
+        formularioPago: {
+            fecha: new Date().toISOString().split('T')[0],
+            monto: 0,
+            forma_pago: '',
+            numdoc: '',
+            id_ctbbanco: '',
+            banco_numdoc: '',
+            banco_fecha: '',
+            numero_cheque: '',
+            destinatario_cheque: ''
+        },
+        
+        formularioAprobacion: {
+            monto_aprobar: 0,
+            notas_aprobacion: ''
+        },
+
+        init() {
+            this.cargarCuentasBancarias();
+            this.cargarSolicitudes('solicitado');
+            this.cargarSolicitudes('aprobado');
+            this.cargarHistorial();
+        },
+
+        async buscarCuentas() {
+            if (!this.searchTerm || this.searchTerm.length < 3) return;
+
+            this.loading = true;
+            sendRequest({
+                url: 'api/seguros/auxilios/buscar-cuentas?q=' + encodeURIComponent(this.searchTerm),  loader: false, showMessage: 0, method: 'GET', 
+                onSuccess: (data) => {
+                    this.cuentasEncontradas = data.data;
+                    this.loading = false;
+                },
+                onError: (error) => {
+                    this.loading = false;
+                   // console.error('Error:', error);
+                    // Toast.fire({icon: 'error',title: 'Error al buscar cuentas'});
+                },
+            });
+        },
+
+        seleccionarCuenta(cuenta) {
+            this.cuentaSeleccionada = cuenta;
+            this.formulario.id_cuenta = cuenta.id;
+            this.formulario.monto_aprobado = cuenta.servicio.monto_auxilio;
+            this.showModalSolicitud = true;
+            this.renovacionValidada = false;
+            this.renovacionValida = false;
+        },
+
+        async verificarRenovacionVigente() {
+            if (!this.formulario.fecha_fallece || !this.cuentaSeleccionada) return;
+
+            sendRequest({
+                url: 'api/seguros/auxilios/verificar-renovacion',  loader: false, showMessage: 0,
+                data: { id_cuenta: this.cuentaSeleccionada.id, fecha_fallece: this.formulario.fecha_fallece },
+                onSuccess: (data) => {
+                    this.renovacionValidada = true;
+                    this.renovacionValida = data.vigente;
+                    this.formulario.monto_aprobado = data.monto_aprobado;
+                },
+                onError: (error) => {
+                    this.renovacionValidada = true;
+                    this.renovacionValida = false;
+                    // console.error('Error:', error);
+                    // Toast.fire({icon: 'error',title: 'Error al verificar renovación'});
+                },
+            });
+        },
+
+        handleFileUpload(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                this.formulario.documentos.push({
+                    archivo: file,
+                    nombre: file.name,
+                    tipo: file.type
+                });
+            });
+        },
+
+        async crearSolicitud() {
+            if (!this.renovacionValida) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'La cuenta no tiene una renovación vigente al momento del fallecimiento.'
+                });
+                return;
+            }
+
+            submitForm('#formSolicitud', {
+                onSuccess: (data) => {
+                    this.showModalSolicitud = false;
+                    this.resetFormulario();
+                    this.activeTab = 'solicitudes';
+                    this.cargarSolicitudes('solicitado');
+                },
+            });
+        },
+
+        async cargarSolicitudes(estado) {
+            sendRequest({
+                url: 'api/seguros/auxilios/listar?estado=' + estado,  method: 'GET', loader: false, showMessage: 0,
+                onSuccess: (data) => {
+                    if (estado === 'solicitado') {
+                        this.solicitudesPendientes = data.data;
+                    } else if (estado === 'aprobado') {
+                        this.solicitudesAprobadas = data.data;
+                    }
+                },
+                onError: (error) => {
+                    console.error('Error:', error);
+                },
+            });
+        },
+
+        aprobarSolicitud(auxilio) {
+            this.auxilioParaAprobar = auxilio;
+            this.formularioAprobacion.monto_aprobar = auxilio.monto_aprobado;
+            this.showModalAprobar = true;
+        },
+        
+        async guardarAprobacion() {
+            if (!this.formularioAprobacion.monto_aprobar || this.formularioAprobacion.monto_aprobar <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Debe ingresar un monto válido para aprobar'
+                });
+                return;
+            }
+            
+            sendRequest({
+                url: 'api/seguros/auxilios/' + this.auxilioParaAprobar.id + '/aprobar',
+                method: 'PUT',
+                data: {
+                    monto_aprobado: this.formularioAprobacion.monto_aprobar,
+                   // notas_aprobacion: this.formularioAprobacion.notas_aprobacion
+                },
+                confirmMessage: '¿Confirmar aprobación de auxilio por ' + this.formatMoney(this.formularioAprobacion.monto_aprobar) + '?',
+                onSuccess: (data) => {
+                    this.showModalAprobar = false;
+                    this.cargarSolicitudes('solicitado');
+                    this.cargarSolicitudes('aprobado');
+                    this.resetFormularioAprobacion();
+                }
+            });
+        },
+        
+        resetFormularioAprobacion() {
+            this.formularioAprobacion = {
+                monto_aprobar: 0,
+                notas_aprobacion: ''
+            };
+            this.auxilioParaAprobar = null;
+        },
+
+        async rechazarSolicitud(auxilio) {
+            sendRequest({
+                url: 'api/seguros/auxilios/' + auxilio.id+ '/rechazar',  method: 'PUT', confirmMessage: '¿Confirmar el rechazo del auxilio?',
+                onSuccess: (data) => {
+                    // console.log(data);
+                    this.cargarSolicitudes('solicitado');
+                }
+            });
+        },
+
+        registrarPago(auxilio) {
+            this.auxilioParaPago = auxilio;
+            // console.log(this.auxilioParaPago);
+            this.formularioPago.monto = auxilio.monto_aprobado;
+            this.showModalPago = true;
+        },
+
+        async guardarPago() {
+            submitForm('#formPago', {
+                action: 'api/seguros/auxilios/' + this.auxilioParaPago.id + '/pagar',
+                confirmMessage: '¿Confirmar el registro del pago por ' + this.formatMoney(this.formularioPago.monto) + '?',
+                onSuccess: (data) => {
+                    this.showModalPago = false;
+                    this.cargarSolicitudes('aprobado');
+                    this.resetFormularioPago();
+                    this.cargarHistorial();
+                    // console.log(data);
+
+                    reporteManager.generarReporteDirect('seguros/comprobante-pago',
+                                        {  id: data.pago_id, csrf_token: `{$csrf_token}`
+                                        }, { tipo: 'show' }
+                                    );
+                },
+                onError: (error) => {
+                    console.error('Error al crear solicitud:', error);
+                }
+            });
+        },
+
+        async cargarHistorial() {
+            try {
+                const url = this.filtroEstado 
+                    ? '/api/seguros/auxilios/historial?estado=' + this.filtroEstado
+                    : '/api/seguros/auxilios/historial';
+                    
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 1) {
+                    this.historial = data.data;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        },
+
+        async cargarCuentasBancarias() {
+            try {
+                const response = await fetch('/api/seguros/auxilios/cuentas-bancos');
+                const data = await response.json();
+                if (data.status === 1) {
+                    this.cuentasBancarias = data.data;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        },
+
+        async verDetalle(auxilio) {
+            sendRequest({
+                url: 'api/seguros/auxilios/' + auxilio.id,  method: 'GET', showMessage: 0,
+                onSuccess: (data) => {
+                    // console.log(data);
+                    this.auxilioDetalle = data.data;
+                    this.showModalDetalle = true;
+                }
+            });
+        },
+
+        resetFormulario() {
+            this.formulario = {
+                id_cuenta: null,
+                fecha_fallece: '',
+                fecha_solicitud: new Date().toISOString().split('T')[0],
+                monto_aprobado: 0,
+                notas: '',
+                documentos: []
+            };
+            this.cuentaSeleccionada = null;
+        },
+
+        resetFormularioPago() {
+            this.formularioPago = {
+                fecha: new Date().toISOString().split('T')[0],
+                monto: 0,
+                forma_pago: '',
+                numdoc: '',
+                id_ctbbanco: '',
+                banco_numdoc: '',
+                banco_fecha: '',
+                numero_cheque: '',
+                destinatario_cheque: ''
+            };
+            this.auxilioParaPago = null;
+        },
+
+        formatMoney(value) {
+            return new Intl.NumberFormat('es-GT', {
+                style: 'currency',
+                currency: 'GTQ',
+            }).format(value || 0);
+        }
+    }
+}
+</script>
+
+<style>
+    [x-cloak] {
+        display: none !important;
+    }
+</style>

@@ -1,0 +1,535 @@
+<div class="p-6 max-w-7xl mx-auto">
+    {* Card de Información de la Cuenta *}
+    <div class="card bg-gradient-to-br from-base-100 to-base-200 shadow-xl border border-base-300 mb-6">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <h2 class="card-title text-2xl">Información de la Cuenta</h2>
+                        <p class="text-sm text-base-content/60">
+                            {if isset($cuenta) && isset($cuenta->id)}
+                            Cuenta #{$cuenta->id}
+                            {else}
+                            Sin cuenta seleccionada
+                            {/if}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" class="btn btn-primary btn-sm gap-2" onclick="modal_cuentas.showModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        {if isset($cuenta) && isset($cuenta->id)}Cambiar{else}Seleccionar{/if} Cuenta
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="loadModuleView('#cuadro', {
+                                                route: 'api/seguros/renovaciones/index'
+                                            });">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+
+            {if !isset($cuenta) || !isset($cuenta->id)}
+            {* Alert cuando no hay cuenta seleccionada *}
+            <div class="alert alert-info shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h3 class="font-bold">Ninguna cuenta seleccionada</h3>
+                    <div class="text-xs">Use el botón "Seleccionar Cuenta" para buscar y elegir una cuenta.</div>
+                </div>
+            </div>
+            {else}
+            {* Grid de información - USANDO OBJETOS *}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+                    <div class="stat-figure text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div class="stat-title text-xs font-semibold uppercase tracking-wide">Cliente</div>
+                    <div class="stat-value text-lg truncate" title="{$cuenta->cliente->short_name ?? 'N/A'}">
+                        {$cuenta->cliente->short_name ?? 'N/A'}
+                    </div>
+                    <div class="stat-desc">{$cuenta->cliente->no_identifica ?? ''}</div>
+                </div>
+
+                <div class="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+                    <div class="stat-figure text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <div class="stat-title text-xs font-semibold uppercase tracking-wide">Servicio</div>
+                    <div class="stat-value text-lg">{$cuenta->servicio->nombre ?? 'N/A'}</div>
+                    <div class="stat-desc">Costo: <span class="font-bold">{$cuenta->servicio->costo ?? 0}</span></div>
+                </div>
+
+                <div class="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+                    <div class="stat-figure text-accent">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="stat-title text-xs font-semibold uppercase tracking-wide">Fecha Inicio</div>
+                    <div class="stat-value text-lg">
+                        {if isset($cuenta->fecha_inicio)}{date('d/m/Y', strtotime($cuenta->fecha_inicio))}{else}N/A{/if}
+                    </div>
+                    <div class="stat-desc">
+                        {if isset($cuenta->estado) && $cuenta->estado == 'vigente'}
+                        <span class="badge badge-success badge-sm">Vigente</span>
+                        {elseif isset($cuenta->estado) && $cuenta->estado == 'cerrada'}
+                        <span class="badge badge-info badge-sm">Cerrada</span>
+                        {elseif isset($cuenta->estado)}
+                        <span class="badge badge-ghost badge-sm">{$cuenta->estado}</span>
+                        {else}
+                        <span class="badge badge-ghost badge-sm">Sin estado</span>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            {if isset($cuenta->observaciones) && !empty($cuenta->observaciones)}
+            <div class="mt-4 p-4 bg-base-200 rounded-lg">
+                <div class="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60 flex-shrink-0 mt-0.5"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <div>
+                        <p class="text-xs font-semibold text-base-content/70 uppercase">Observaciones</p>
+                        <p class="text-sm">{$cuenta->observaciones}</p>
+                    </div>
+                </div>
+            </div>
+            {/if}
+            {/if}
+        </div>
+    </div>
+
+    {* Historial de Renovaciones - USANDO OBJETOS *}
+    {if isset($cuenta) && isset($cuenta->renovaciones) && count($cuenta->renovaciones) > 0}
+    <div class="card bg-base-100 shadow-xl border border-base-300 mb-6">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <h2 class="card-title text-2xl">Historial de Renovaciones</h2>
+                        <p class="text-sm text-base-content/60">{count($cuenta->renovaciones)}
+                            {count($cuenta->renovaciones) == 1 ? 'renovación' : 'renovaciones'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Número</th>
+                            <th>Fecha Renovación</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {foreach $cuenta->renovaciones as $renovacion}
+                        <tr>
+                            <td>{$renovacion->id}</td>
+                            <td><span class="badge badge-neutral">#{$renovacion->numero}</span></td>
+                            <td>{date('d/m/Y', strtotime($renovacion->fecha))}</td>
+                            <td>{date('d/m/Y', strtotime($renovacion->fecha_inicio))}</td>
+                            <td>{date('d/m/Y', strtotime($renovacion->fecha_fin))}</td>
+                            <td><span class="font-bold text-primary">{$renovacion->monto}</span></td>
+                            <td>
+                                <button class="btn btn-xs btn-ghost gap-1" onclick="reporteManager.generarReporteDirect(
+                                        'seguros/comprobante-renovacion',
+                                        { 
+                                            id: {$renovacion->id},
+                                            csrf_token: {$csrf_token}
+                                        },
+                                        { tipo: 'show' }
+                                    );">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Comprobante
+                                </button>
+                                <button class="btn btn-xs btn-ghost gap-1" onclick="reporteManager.generarReporteDirect(
+                                        'seguros/contrato-renovacion',
+                                        { 
+                                            id: {$renovacion->id},
+                                            csrf_token: {$csrf_token}
+                                        },
+                                        { tipo: 'show' }
+                                    );">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Contrato
+                                </button>
+                            </td>
+                        </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    {* Formulario Nueva Renovación - Solo si hay cuenta *}
+    {if isset($cuenta) && isset($cuenta->id)}
+    <div class="card bg-base-100 shadow-xl border border-success/30 mb-6" id="renovacionForm"
+        x-data="{ formaPago: 'efectivo' }" data-action="api/seguros/renovaciones" data-method="POST">
+        <div class="card-body">
+            <div class="flex items-center gap-3 mb-6">
+                <div>
+                    <h2 class="card-title text-2xl">Nueva Renovación</h2>
+                    <p class="text-sm text-base-content/60">Registre una nueva renovación para esta cuenta</p>
+                </div>
+            </div>
+
+            <input type="hidden" name="csrf_token" value="{$csrf_token}">
+            <input type="hidden" name="id_cuenta" value="{$cuenta->id ?? ''}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            </svg>
+                            Número de documento
+                        </span>
+                    </label>
+                    <input required type="text" id="numdoc" name="numdoc" class="input input-bordered input-primary"
+                        placeholder="Ej: 1xx" data-label="Número de documento" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Fecha Renovación
+                        </span>
+                    </label>
+                    <input type="date" id="fecha" name="fecha" class="input input-bordered input-primary"
+                        value="{date('Y-m-d')}" required data-label="Fecha Renovación" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Monto
+                        </span>
+                    </label>
+                    <input type="number" step="0.01" id="monto" name="monto" class="input input-bordered input-primary"
+                        placeholder="0.00" value="{$cuenta->servicio->costo ?? ''}" required data-label="Monto"
+                        min="0" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                            Fecha Inicio
+                        </span>
+                    </label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="input input-bordered input-primary"
+                        value="{date('Y-m-d')}" required data-label="Fecha Inicio" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Fecha Fin
+                        </span>
+                    </label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" class="input input-bordered input-primary"
+                        required data-label="Fecha Fin" />
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            </svg>
+                            Forma de pago
+                        </span>
+                    </label>
+                    <select class="select" id="forma_pago" name="forma_pago" required x-model="formaPago"
+                        data-label="Forma de pago">
+                        <option value="" disabled selected>Seleccione</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="banco">Boleta de banco</option>
+                    </select>
+                </div>
+
+                <div class="form-control" x-show="formaPago === 'banco'" x-cloak>
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            </svg>
+                            Cuentas Bancarias
+                        </span>
+                    </label>
+                    <select class="select" id="cuenta_banco" name="cuenta_banco" :required="formaPago === 'banco'"
+                        data-label="Cuenta Bancaria">
+                        <option value="" disabled selected>Seleccione</option>
+                        {foreach $cuentasBancos as $cuentaBanco}
+                        <option value="{$cuentaBanco->id}">{$cuentaBanco->banco->nombre ?? 'N/A'} -
+                            {$cuentaBanco->numcuenta ?? 'N/A'}</option>
+                        {/foreach}
+                    </select>
+                </div>
+
+                <div class="form-control" x-show="formaPago === 'banco'" x-cloak>
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            </svg>
+                            Número de boleta
+                        </span>
+                    </label>
+                    <input type="text" id="numero_boleta" name="numero_boleta"
+                        class="input input-bordered input-primary" placeholder="Ej: 1xx"
+                        :required="formaPago === 'banco'" data-label="Número de boleta" />
+                </div>
+
+                <div class="form-control" x-show="formaPago === 'banco'" x-cloak>
+                    <label class="label">
+                        <span class="label-text font-semibold flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Fecha boleta
+                        </span>
+                    </label>
+                    <input type="date" id="fecha_boleta" name="fecha_boleta" class="input input-bordered input-primary"
+                        value="{date('Y-m-d')}" :required="formaPago === 'banco'" data-label="Fecha de boleta" />
+                </div>
+            </div>
+
+
+            <div class="divider"></div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" class="btn btn-ghost gap-2" onclick="loadModuleView('#cuadro', {
+                                                route: 'api/seguros/cuentas/index'
+                                            });">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-success gap-2" onclick="submitForm('#renovacionForm', {
+                        confirmMessage: '¿Está seguro de que desea guardar la informacion?',
+                        onSuccess: async (response) => {
+                            const renovacionId = response.reload?.data?.id;
+                            
+                            if (!renovacionId) return;
+
+                            const result = await Swal.fire({
+                                title: 'Renovación guardada',
+                                text: '¿Desea imprimir el comprobante?',
+                                icon: 'success',
+                                showCancelButton: true,
+                                confirmButtonText: 'Sí, imprimir',
+                                cancelButtonText: 'No, gracias'
+                            });
+
+                            if (result.isConfirmed) {
+                                try {
+                                    await reporteManager.generarReporteDirect(
+                                        'seguros/comprobante-renovacion',
+                                        { 
+                                            id: renovacionId,
+                                            csrf_token: {$csrf_token}
+                                        },
+                                        { tipo: 'show' }
+                                    );
+                                } catch (error) {
+                                    console.error('Error generando comprobante:', error);
+                                }
+                            }
+                        }
+                        });">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Guardar Renovación
+                </button>
+            </div>
+        </div>
+    </div>
+    {/if}
+
+    {* Modal de Cambio de Cuenta *}
+
+    <dialog id="modal_cuentas" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Buscar Cuenta</h3>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra table-sm w-full" id="cuentasTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Identificación</th>
+                            <th>Fecha Inicio</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-ghost">Cerrar</button>
+                </form>
+            </div>
+        </div>
+
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <script n:syntax=off>
+        $(document).ready(function() {
+                startValidationGeneric('#renovacionForm');
+                
+                const columns = [{
+                        data: 'id',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'short_name',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'no_identifica',
+                    },
+                    {
+                        data: 'fecha_inicio',
+                        render: function(data, type, row) {
+                            const date = new Date(data);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                        }
+                    },
+                    {
+                        data: 'estado',
+                        render: function(data, type, row) {
+                            let badgeClass = 'badge-info';
+                            const estado = data.toUpperCase();
+                            if (estado === 'VIGENTE') badgeClass = 'badge-success';
+                            if (estado === 'CERRADA') badgeClass = 'badge-info';
+                            return `<span class="badge ${badgeClass} badge-sm">${estado}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        title: 'Acción',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `<button class="btn btn-soft btn-success" onclick="loadModuleView('#cuadro', {
+                             route: 'api/seguros/renovaciones/${row.id}'
+                            });modal_cuentas.close();">Seleccionar</button>`;
+                        }
+                    }
+                ];
+                const table = initServerSideDataTable(
+                    '#cuentasTable',
+                    'aux_cuentas',
+                    columns, {
+                        onError: function(xhr, error, thrown) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error al cargar clientes',
+                                text: 'Por favor, intente nuevamente'
+                            });
+                        }
+                    }
+                );
+            });
+    </script>
+</div>

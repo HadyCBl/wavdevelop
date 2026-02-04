@@ -1,0 +1,26 @@
+# TIEMPO DE DURACION DE LA CACHE JS, 43200 SEGUNDOS, 12 HORAS
+<FilesMatch "\.(js)$">
+    Header set Cache-Control "max-age=43200, public"
+</FilesMatch>
+
+# Denegar acceso a archivos y directorios específicos (local:noproblem)
+<FilesMatch "^(\.htaccess|\.htaccess.example|\.htpasswd|\.env|config\.php|composer\.(json|lock)|package\.json|\.git)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear acceso a la carpeta .git y sus subcarpetas
+RewriteEngine On
+RewriteRule ^\.git - [F,L]
+
+# No listar directorios si entran por url (local:noproblem)
+Options -Indexes
+
+# Forzar HTTPS (local:si problem)
+# RewriteEngine On
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Configurar cabeceras de seguridad (local:noproblem)
+Header always set X-XSS-Protection "1; mode=block"
+Header always set X-Frame-Options "DENY"
+Header always set X-Content-Type-Options "nosniff"

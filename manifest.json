@@ -1,0 +1,25 @@
+{
+  "name": "Microsystemplus",
+  "short_name": "Microsistem+",
+  "start_url": "/index.php",
+  "display": "fullscreen",
+  "background_color": "#ffffff",
+  "theme_color": "#1C2833",
+  "icons": [
+    {
+      "src": "/includes/img/mguate.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/includes/img/mguate.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "landscape",
+  "display_override": [
+    "fullscreen",
+    "window-controls-overlay"
+  ]
+}

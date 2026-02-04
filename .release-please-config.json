@@ -1,0 +1,7 @@
+{
+  ".": {
+    "releaseType": "php",
+    "packageName": "microsystemplus",
+    "bumpMinorPreMajor": true
+  }
+}

@@ -1,0 +1,97 @@
+<IfModule mod_headers.c>
+    # ============================================
+    # ARCHIVOS CON HASH (contenthash) - Cachear 1 año
+    # ============================================
+    # Estos archivos tienen un hash único en el nombre (ej: bundle_another.699a5a7f.js)
+    # Si el contenido cambia, el hash cambia, así que podemos cachearlos indefinidamente
+    
+    <FilesMatch "\.[a-f0-9]{8}\.(js|css)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header set Expires "Thu, 31 Dec 2099 23:59:59 GMT"
+    </FilesMatch>
+
+    # Imágenes con hash
+    <FilesMatch "\.[a-f0-9]{8}\.(jpg|jpeg|png|gif|svg|webp|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header set Expires "Thu, 31 Dec 2099 23:59:59 GMT"
+    </FilesMatch>
+
+    # ============================================
+    # MANIFEST.JSON - NUNCA cachear
+    # ============================================
+    # El manifest debe verificarse siempre para saber qué archivos cargar
+    
+    <FilesMatch "manifest\.json$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # ============================================
+    # COMPRESIÓN GZIP
+    # ============================================
+    
+    <IfModule mod_deflate.c>
+        # Comprimir estos tipos de archivo dinámicamente
+        AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+        AddOutputFilterByType DEFLATE text/javascript application/javascript application/x-javascript
+        AddOutputFilterByType DEFLATE application/json application/xml application/xhtml+xml
+        AddOutputFilterByType DEFLATE application/rss+xml application/atom+xml
+        AddOutputFilterByType DEFLATE image/svg+xml
+        
+        # Descomprimir para navegadores antiguos que no soportan compresión
+        BrowserMatch ^Mozilla/4 gzip-only-text/html
+        BrowserMatch ^Mozilla/4\.0[678] no-gzip
+        BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+        
+        # Agregar header para indicar que está comprimido
+        Header append Vary User-Agent
+    </IfModule>
+
+    # ============================================
+    # SERVIR ARCHIVOS PRECOMPRIMIDOS (.gz y .br)
+    # ============================================
+    
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        
+        # SOLO GZIP (comentar Brotli)
+        RewriteCond %{HTTP:Accept-Encoding} gzip
+        RewriteCond %{REQUEST_FILENAME}\.gz -f
+        RewriteRule ^(.+)\.(js|css)$ $1.$2.gz [L]
+    </IfModule>
+
+    # ============================================
+    # HEADERS PARA ARCHIVOS COMPRIMIDOS
+    # ============================================
+
+    # JavaScript comprimido con Gzip
+    <FilesMatch "\.js\.gz$">
+        Header set Content-Type "application/javascript"
+        Header set Content-Encoding "gzip"
+        Header set Vary "Accept-Encoding"
+    </FilesMatch>
+
+    # CSS comprimido con Gzip
+    <FilesMatch "\.css\.gz$">
+        Header set Content-Type "text/css"
+        Header set Content-Encoding "gzip"
+        Header set Vary "Accept-Encoding"
+    </FilesMatch>
+
+    # ============================================
+    # ETAG PARA VALIDACIÓN DE CACHÉ
+    # ============================================
+    
+    FileETag MTime Size
+    
+    # ============================================
+    # SEGURIDAD ADICIONAL
+    # ============================================
+    
+    # Prevenir acceso directo a archivos .map (source maps)
+    <FilesMatch "\.map$">
+        Header set X-Robots-Tag "noindex, nofollow"
+        Require all denied
+    </FilesMatch>
+</IfModule>
