@@ -26,7 +26,6 @@ $(document).on("click", "#togglePassword", function (e) {
     }
 });
 
-
 //version actual
 $(document).on("click", "#togglePasswordindex", function (e) {
     e.preventDefault();
@@ -48,11 +47,9 @@ $("#frmlogin").on('submit', function (e) {
     var $form = $(this);
     loaderefect(1);
     
-    // COMENTAR ESTO TEMPORALMENTE
-    /*
-    grecaptcha.ready(function () {
-        grecaptcha.execute('6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8', { action: 'submit' }).then(function (token) {
-    */
+    // COMENTAR COMPLETAMENTE reCAPTCHA - CORREGIDO
+    // grecaptcha.ready(function () {
+    //     grecaptcha.execute('6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8', { action: 'submit' }).then(function (token) {
     
     // QUITAR LA VALIDACIÓN DEL TOKEN
     if (!validateForm()) {
@@ -104,14 +101,11 @@ $("#frmlogin").on('submit', function (e) {
         },
     });
     
-    /*
-        });
-    });
-    */
+    // }); // Cierre de then
+    // }); // Cierre de grecaptcha.ready
 });
 
 $("#eliminarsesion").click(function (e) {
-    // console.log('ci');
     e.preventDefault();
     $.ajax({
         type: 'POST',
@@ -123,7 +117,6 @@ $("#eliminarsesion").click(function (e) {
         },
         success: function (data) {
             loaderefect(0);
-            // console.log(data);
         },
         error: function (xhr) {
             loaderefect(0);
