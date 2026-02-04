@@ -47,64 +47,67 @@ $("#frmlogin").on('submit', function (e) {
     e.preventDefault();
     var $form = $(this);
     loaderefect(1);
+    
+    // COMENTAR ESTO TEMPORALMENTE
+    /*
     grecaptcha.ready(function () {
         grecaptcha.execute('6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8', { action: 'submit' }).then(function (token) {
-            if (!validateForm()) {
+    */
+    
+    // QUITAR LA VALIDACIÓN DEL TOKEN
+    if (!validateForm()) {
+        loaderefect(0);
+        Swal.fire({
+            icon: 'error',
+            title: '¡ERROR!',
+            text: "Rellene todos los campos obligatorios"
+        });
+        return;
+    }
+
+    // QUITAR '&token=' + token del dataForm
+    var dataForm = $form.serialize(); // Sin token
+    
+    $.ajax({
+        type: 'POST',
+        url: 'src/cruds/crud_usuario.php',
+        data: dataForm,
+        dataType: 'json',
+        beforeSend: function () {},
+        success: function (data) {
+            icono = ("icon" in data) ? data.icon : 'error';
+            titulo = ("title" in data) ? data.title : '¡ERROR!';
+            if (data[0]) {
+                location.reload();
+            } else {
                 loaderefect(0);
                 Swal.fire({
-                    icon: 'error',
-                    title: '¡ERROR!',
-                    text: "Rellene todos los campos obligatorios"
+                    icon: icono,
+                    title: titulo,
+                    text: data[1]
                 });
-                return;
+                setTimeout(function () {
+                    location.reload();
+                }, 1500);
             }
-
-            // if (validarFormLogin()) {
-            // Serializa el formulario y añade el tokenrecaptcha
-            var dataForm = $form.serialize() + '&token=' + token;
-            $.ajax({
-                type: 'POST',
-                url: 'src/cruds/crud_usuario.php',
-                data: dataForm,
-                dataType: 'json',
-                beforeSend: function () {
-                    
-                },
-                success: function (data) {
-                    icono = ("icon" in data) ? data.icon : 'error';
-                    titulo = ("title" in data) ? data.title : '¡ERROR!';
-                    // console.log(data)
-                    if (data[0]) {
-                        location.reload();
-                    } else {
-                        loaderefect(0);
-                        Swal.fire({
-                            icon: icono,
-                            title: titulo,
-                            text: data[1]
-                        });
-                        setTimeout(function () {
-                            location.reload();
-                        }, 1500);
-                    }
-                },
-                error: function (xhr) {
-                    // console.log(xhr)
-                    loaderefect(0);
-                    Swal.fire({
-                        icon: 'error',
-                        title: '¡ERROR!',
-                        text: 'Codigo de error: ' + xhr.status + ', Información de error: ' + xhr.responseJSON
-                    });
-                },
-                complete: function (dat) {
-                    // console.log(dat)
-                    loaderefect(0);
-                },
+        },
+        error: function (xhr) {
+            loaderefect(0);
+            Swal.fire({
+                icon: 'error',
+                title: '¡ERROR!',
+                text: 'Codigo de error: ' + xhr.status + ', Información de error: ' + xhr.responseJSON
             });
-            // }
+        },
+        complete: function (dat) {
+            loaderefect(0);
+        },
+    });
+    
+    /*
         });
     });
+    */
 });
 
 $("#eliminarsesion").click(function (e) {
