@@ -1,5 +1,7 @@
 function loaderefect(sh) {
     const LOADING = document.querySelector('.loader-container');
+    if (!LOADING) return;
+    
     switch (sh) {
         case 1:
             LOADING.classList.remove('loading--hide');
@@ -26,7 +28,6 @@ $(document).on("click", "#togglePassword", function (e) {
     }
 });
 
-//version actual
 $(document).on("click", "#togglePasswordindex", function (e) {
     e.preventDefault();
     
@@ -47,11 +48,7 @@ $("#frmlogin").on('submit', function (e) {
     var $form = $(this);
     loaderefect(1);
     
-    // COMENTAR COMPLETAMENTE reCAPTCHA - CORREGIDO
-    // grecaptcha.ready(function () {
-    //     grecaptcha.execute('6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8', { action: 'submit' }).then(function (token) {
-    
-    // QUITAR LA VALIDACIÓN DEL TOKEN
+    // VALIDACIÓN SIMPLE - SIN reCAPTCHA
     if (!validateForm()) {
         loaderefect(0);
         Swal.fire({
@@ -62,15 +59,13 @@ $("#frmlogin").on('submit', function (e) {
         return;
     }
 
-    // QUITAR '&token=' + token del dataForm
-    var dataForm = $form.serialize(); // Sin token
+    var dataForm = $form.serialize();
     
     $.ajax({
         type: 'POST',
         url: 'src/cruds/crud_usuario.php',
         data: dataForm,
         dataType: 'json',
-        beforeSend: function () {},
         success: function (data) {
             icono = ("icon" in data) ? data.icon : 'error';
             titulo = ("title" in data) ? data.title : '¡ERROR!';
@@ -93,16 +88,13 @@ $("#frmlogin").on('submit', function (e) {
             Swal.fire({
                 icon: 'error',
                 title: '¡ERROR!',
-                text: 'Codigo de error: ' + xhr.status + ', Información de error: ' + xhr.responseJSON
+                text: 'Error: ' + (xhr.responseJSON || xhr.statusText || 'Error desconocido')
             });
         },
-        complete: function (dat) {
+        complete: function () {
             loaderefect(0);
         },
     });
-    
-    // }); // Cierre de then
-    // }); // Cierre de grecaptcha.ready
 });
 
 $("#eliminarsesion").click(function (e) {
@@ -117,18 +109,16 @@ $("#eliminarsesion").click(function (e) {
         },
         success: function (data) {
             loaderefect(0);
+            location.reload();
         },
         error: function (xhr) {
             loaderefect(0);
             Swal.fire({
                 icon: 'error',
                 title: '¡ERROR!',
-                text: 'Codigo de error: ' + xhr.status + ', Información de error: ' + xhr.responseJSON
+                text: 'Error al cerrar sesión'
             });
-        },
-        complete: function () {
-            loaderefect(0);
-        },
+        }
     });
 });
 
