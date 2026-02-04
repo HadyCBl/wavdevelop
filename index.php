@@ -46,6 +46,55 @@ if (isset($_SESSION['usu'])) {
     } finally {
     }
 ?>
+<script>
+// 1. Bloquear reCAPTCHA
+window.grecaptcha = {
+    ready: function(callback) {
+        console.log('reCAPTCHA bloqueado - ejecutando callback vacío');
+        if (callback) {
+            // Simular token vacío después de 100ms
+            setTimeout(function() {
+                callback();
+            }, 100);
+        }
+    },
+    execute: function(siteKey, options) {
+        console.log('reCAPTCHA.execute bloqueado - devolviendo token vacío');
+        return Promise.resolve('');
+    },
+    render: function() {
+        console.log('reCAPTCHA.render bloqueado');
+        return '';
+    }
+};
+
+// 2. Deshabilitar Service Workers
+document.addEventListener('DOMContentLoaded', function() {
+    if ('serviceWorker' in navigator) {
+        // Desregistrar todos los Service Workers
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(registration) {
+                registration.unregister().then(function(success) {
+                    console.log('Service Worker desregistrado:', success);
+                });
+            });
+        });
+        
+        // Limpiar cache
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        return caches.delete(cacheName);
+                    })
+                );
+            }).then(function() {
+                console.log('Cache limpiado');
+            });
+        }
+    }
+});
+</script>
     <!DOCTYPE html>
     <html lang="es">
 
@@ -147,25 +196,15 @@ if (isset($_SESSION['usu'])) {
             <div class="loader2"></div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous">
-        </script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
-        <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
-        <!-- <script src="https://www.google.com/recaptcha/api.js?render=6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8"></script> -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous">
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
+<script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
 
-        <script>
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('includes/js/service-worker.js')
-                        .then(registration => {})
-                        .catch(error => {
-                            // console.log('ServiceWorker registro fallido:', error);
-                        });
-                });
-            }
-        </script>
+
+       
 
     </body>
 
