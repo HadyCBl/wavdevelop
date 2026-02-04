@@ -132,7 +132,7 @@ $idModuleCurrent = 10; // ID DEL MODULO BANCOS
                   <img src="<?= '..' . $infoEnti['imagenEnti'] ?? '' ?>" alt="" srcset="" width="500">
                   <p class="displayed text-success text-center" style='font-family: "Garamond", serif;
                       font-weight: bold;
-                      font-size: x-large;'> Sistema orientado para microfinanzas </p>
+                      font-size: x-large;'> WAVDEVELOP </p>
                 </div>
               </div>
             </div>

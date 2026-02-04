@@ -369,7 +369,7 @@ $idModuleCurrent = 0;
                                                     alt="Imagen de la entidad" width="500" class="img-fluid">
                                                 <p class="text-success"
                                                     style="font-family: 'Garamond', serif; font-weight: bold; font-size: x-large;">
-                                                    Sistema orientado para microfinanzas
+                                                    WAVDEVELOP
                                                 </p>
                                             </div>
                                         </div>
