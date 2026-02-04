@@ -4,20 +4,18 @@ use App\DatabaseAdapter;
 include 'includes/Config/config.php';
 session_start();
 
-//manejo de  errores
+//manejo de errores
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/logs/php_errors.log');
 
 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     $errorMessage = "[PHP Error] $errstr en $errfile línea $errline";
-    // echo "<script>console.error(" . json_encode($errorMessage) . ");</script>";
     error_log($errorMessage, 3, __DIR__ . '/logs/php_errors.log');
 });
 
 set_exception_handler(function ($exception) {
     $errorMessage = "[PHP Exception] {$exception->getMessage()} en {$exception->getFile()} línea {$exception->getLine()}";
-    // echo "<script>console.error(" . json_encode($errorMessage) . ");</script>";
     error_log($errorMessage, 3, __DIR__ . '/logs/php_errors.log');
 });
 
@@ -32,10 +30,8 @@ if (isset($_SESSION['usu'])) {
      */
     $showmensaje = false;
     try {
-
         $nameSystem = $appConfigGeneral->getNombreSistema();
         $logoLogin = $appConfigGeneral->getLogoLogin();
-
         $status = 1;
     } catch (Throwable $e) {
         if (!$showmensaje) {
@@ -52,7 +48,6 @@ window.grecaptcha = {
     ready: function(callback) {
         console.log('reCAPTCHA bloqueado - ejecutando callback vacío');
         if (callback) {
-            // Simular token vacío después de 100ms
             setTimeout(function() {
                 callback();
             }, 100);
@@ -71,7 +66,6 @@ window.grecaptcha = {
 // 2. Deshabilitar Service Workers
 document.addEventListener('DOMContentLoaded', function() {
     if ('serviceWorker' in navigator) {
-        // Desregistrar todos los Service Workers
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
             registrations.forEach(function(registration) {
                 registration.unregister().then(function(success) {
@@ -80,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Limpiar cache
         if ('caches' in window) {
             caches.keys().then(function(cacheNames) {
                 return Promise.all(
@@ -95,119 +88,247 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-    <!DOCTYPE html>
-    <html lang="es">
-
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="robots" content="noindex">
-        <title><?= $nameSystem ?? 'Microsystem' ?></title>
-        <link rel="shortcut icon" type="image/x-icon" href="includes/img/favmicro.ico">
-        <link rel="stylesheet" href="includes/css/login.css">
-        <link rel="stylesheet" href="includes/css/login-custom.css">
-        <link rel="manifest" href="/manifest.json">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-        <link rel="stylesheet" href="includes/css/estiloslog.css">
-        <style>
-
-        </style>
-    </head>
-
-    <body>
-        <div class="login-container">
-            <!-- Formulario de inicio de sesión -->
-            <div class="login-form-section">
-                <h3 class="login-title">Iniciar Sesión</h3>
-
-                <div class="logo-container">
-                    <img
-                        src="includes/img/fondologo.png"
-                        alt="Logo Microsystem"
-                        class="logo-img">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title><?= $nameSystem ?? 'Wavdevelop' ?></title>
+    <link rel="shortcut icon" type="image/x-icon" href="includes/img/favmicro.ico">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .login-section {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .brand-section {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        .login-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .brand-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        
+        .brand-title {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .brand-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        @media (max-width: 768px) {
+            .login-card {
+                flex-direction: column;
+            }
+            
+            .login-section, .brand-section {
+                padding: 30px;
+            }
+        }
+        
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading--hide {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <!-- Sección de Login -->
+        <div class="login-section">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Iniciar Sesión</h2>
+                <p class="text-gray-600">Por favor inicia sesión con tu cuenta</p>
+            </div>
+            
+            <form method="POST" id="frmlogin" class="space-y-6">
+                <!-- Usuario -->
+                <div class="relative">
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <input
+                        type="text"
+                        id="usuario"
+                        name="usuario"
+                        placeholder="Usuario"
+                        required
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                        value="harvey001">
                 </div>
-
-                <p class="login-subtitle">
-                    Por favor inicia sesión con tu cuenta
-                </p>
-
-                <form method="POST" id="frmlogin" class="login-form">
-                    <div class="input-group">
-                        <div class="input-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <input
-                            type="text"
-                            id="usuario"
-                            name="usuario"
-                            placeholder="Usuario"
-                            required
-                            class="login-input">
+                
+                <!-- Contraseña -->
+                <div class="relative">
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
                     </div>
-                    <div class="input-group password-group">
-                        <div class="input-icon">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Contraseña"
-                            required
-                            class="login-input password-input">
-                        <button
-                            type="button"
-                            id="togglePasswordindex"
-                            class="toggle-password">
-                            <i class="fas fa-eye" id="eyeIcon"></i>
-                        </button>
-                    </div>
-
-                    <input name="condi" value="acceso" class="hidden-input">
-                    <?php echo $csrf->getTokenField(); ?>
-
-                    <button type="submit" id="btnEnviar" class="login-button">
-                        INICIAR SESIÓN
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Contraseña"
+                        required
+                        class="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 password-input">
+                    <button
+                        type="button"
+                        id="togglePasswordindex"
+                        class="password-toggle">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
                     </button>
-                </form>
-            </div>
-            <!--  Informativa -->
-            <div class="info-section">
-
-                <img
-                    src="<?= $logoLogin ?? "https://imagen.wavdevelop.com/ico.avif" ?>"
-                    alt="Microsystem+ Logo"
-                    class="info-logo"
-                    oncontextmenu="return false;">
-                <h1 class="info-title cursiva-font" id="microsystem-title">
-                    <span id="plus-sign" class="info-plus-sign"><?= $nameSystem ?? 'Microsystem' ?></span>
-                </h1>
-
-                <p class="info-subtitle">Digital Solutions</p>
-            </div>
+                </div>
+                
+                <input type="hidden" name="condi" value="acceso">
+                <?php echo $csrf->getTokenField(); ?>
+                
+                <button 
+                    type="submit" 
+                    id="btnEnviar" 
+                    class="w-full login-btn text-white font-semibold py-3 px-4 rounded-lg shadow-lg">
+                    INICIAR SESIÓN
+                </button>
+            </form>
         </div>
-
-        <div class="loader-container loading--hide">
-            <div class="loader"></div>
-            <div class="loaderimg"></div>
-            <div class="loader2"></div>
+        
+        <!-- Sección de Marca -->
+        <div class="brand-section">
+            <img 
+                src="<?= $logoLogin ?? 'https://imagen.wavdevelop.com/ico.avif' ?>" 
+                alt="<?= $nameSystem ?? 'Wavdevelop' ?> Logo" 
+                class="brand-logo"
+                oncontextmenu="return false;">
+            
+            <h1 class="brand-title">
+                <?= $nameSystem ?? '' ?>
+            </h1>
+            
+            <p class="brand-subtitle"></p>
         </div>
+    </div>
 
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous">
-</script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
-<script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
+    <!-- Loader -->
+    <div class="loader-container loading--hide">
+        <div class="loader"></div>
+        <div class="loaderimg"></div>
+        <div class="loader2"></div>
+    </div>
 
-
-       
-
-    </body>
-
-    </html>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
+    <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
+    
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePasswordindex').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        });
+    </script>
+</body>
+</html>
 <?php
 }
