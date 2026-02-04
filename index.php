@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="info-section">
 
                 <img
-                    src="<?= $logoLogin ?? "https://img.microsystemplus2.com/mguate.avif" ?>"
+                    src="<?= $logoLogin ?? "https://imagen.wavdevelop.com/ico.avif" ?>"
                     alt="Microsystem+ Logo"
                     class="info-logo"
                     oncontextmenu="return false;">
