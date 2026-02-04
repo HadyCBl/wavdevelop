@@ -151,9 +151,7 @@ if (isset($_SESSION['usu'])) {
         </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/log.js"></script>
         <script type="text/javascript" src="<?php echo BASE_URL; ?>/public/assets/mane/all.min.js"></script>
-        <!-- <script src="https://www.google.com/recaptcha/api.js?render=6Ld1-g0qAAAAAHmikE5cc8FL3ctmtjayshUNAbv8"></script> -->
 
         <script>
             if ('serviceWorker' in navigator) {
