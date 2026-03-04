@@ -1120,6 +1120,41 @@ function generico_plus2(formData, id) {
   });
 }
 
+// Función modificada para cliente básico
+function obtiene_plus2_basico(inputs, selects, radios, condi, id, archivo) {
+    var inputs2 = getinputsval(inputs);
+    var selects2 = getselectsval(selects);
+    var radios2 = getradiosval(radios);
+    
+    var formData = new FormData();
+    formData.append("inputs", JSON.stringify(inputs2));
+    formData.append("selects", JSON.stringify(selects2));
+    formData.append("radios", JSON.stringify(radios2));
+    formData.append("condi", condi);
+    formData.append("id", id);
+    formData.append("archivo", JSON.stringify(archivo));
+    
+    // No agregar foto para cliente básico
+    generico_plus2(formData, id);
+}
+
+// O puedes mantener la original pero sin foto
+function obtiene_plus2_simple(inputs, selects, radios, condi, id, archivo) {
+    var inputs2 = getinputsval(inputs);
+    var selects2 = getselectsval(selects);
+    var radios2 = getradiosval(radios);
+    
+    var formData = new FormData();
+    formData.append("inputs", JSON.stringify(inputs2));
+    formData.append("selects", JSON.stringify(selects2));
+    formData.append("radios", JSON.stringify(radios2));
+    formData.append("condi", condi);
+    formData.append("id", id);
+    formData.append("archivo", JSON.stringify(archivo));
+    
+    generico_plus2(formData, id);
+}
+
 //Obtiene los valores de los inputsCarga mulptiple de archivos
 function obtiene_plus3(
   inputs,

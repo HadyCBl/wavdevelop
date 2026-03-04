@@ -4927,6 +4927,127 @@ switch ($condi) {
 
     echo json_encode([$mensaje, $status]);
     break;
+
+    case 'create_cliente_basico': {
+    try {
+        if (!isset($_SESSION['id'])) {
+            throw new Exception("Sesión expirada, por favor inicie sesión nuevamente");
+        }
+
+        $inputs = json_decode($_POST["inputs"], true);
+        $selects = json_decode($_POST["selects"], true);
+        $radios = json_decode($_POST["radios"], true);
+        $archivo = json_decode($_POST["archivo"], true);
+        
+        // Mapeo de inputs
+        list(
+            $nombre1, $nombre2, $nombre3, $ape1, $ape2, $ape3,
+            $profesion, $email, $fechaNacimiento, $numeroDoc, $numeroNIT,
+            $tel1, $tel2, $dirVivienda, $zonaVivienda, $barrioVivienda,
+            $refNombre1, $ref1, $refNombre2, $ref2, $observaciones
+        ) = $inputs;
+
+        // Mapeo de selects
+        list(
+            $genero, $estcivil, $tipodoc, $paisnac, $nacionalidad,
+            $refp1, $refp2
+        ) = $selects;
+
+        // Validaciones básicas
+        if (empty($nombre1)) throw new Exception("El primer nombre es obligatorio");
+        if (empty($ape1)) throw new Exception("El primer apellido es obligatorio");
+        if (empty($tipodoc)) throw new Exception("El tipo de documento es obligatorio");
+        if (empty($numeroDoc)) throw new Exception("El número de documento es obligatorio");
+        
+        // Validar email si se ingresó
+        if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("El correo electrónico no es válido");
+        }
+
+        $database->openConnection();
+        
+        // Verificar si el documento ya existe
+        $verificacion = $database->selectColumns("tb_cliente", ['idcod_cliente'], 
+            'no_identifica = ? AND estado = 1', [$numeroDoc]);
+        if (!empty($verificacion)) {
+            throw new Exception("El número de documento ya está registrado");
+        }
+        
+        // Generar código de cliente
+        $agenciaID = $archivo[0] ?? $_SESSION['agencia'] ?? '1';
+        $codgen = cli_gencodclientePDO($agenciaID, $database);
+        
+        // Transformar nombres a mayúsculas
+        $nombre1 = mb_strtoupper(trim($nombre1), 'UTF-8');
+        $nombre2 = mb_strtoupper(trim($nombre2), 'UTF-8');
+        $nombre3 = mb_strtoupper(trim($nombre3), 'UTF-8');
+        $ape1 = mb_strtoupper(trim($ape1), 'UTF-8');
+        $ape2 = mb_strtoupper(trim($ape2), 'UTF-8');
+        $ape3 = mb_strtoupper(trim($ape3), 'UTF-8');
+        
+        // Generar nombre corto y completo
+        $nombres = trim("$nombre1 $nombre2 $nombre3");
+        $apellidos = trim("$ape1 $ape2 $ape3");
+        $short_name = trim("$nombres $apellidos");
+        $compl_name = trim("$apellidos $nombres");
+        
+        $database->beginTransaction();
+        
+        // Preparar datos para inserción
+        $data = [
+            'idcod_cliente' => $codgen,
+            'id_tipoCliente' => 'NATURAL',
+            'agencia' => $agenciaID,
+            'primer_name' => $nombre1,
+            'segundo_name' => $nombre2,
+            'tercer_name' => $nombre3,
+            'primer_last' => $ape1,
+            'segundo_last' => $ape2,
+            'casada_last' => $ape3,
+            'short_name' => $short_name,
+            'compl_name' => $compl_name,
+            'date_birth' => !empty($fechaNacimiento) ? $fechaNacimiento : null,
+            'genero' => $genero,
+            'estado_civil' => $estcivil,
+            'profesion' => $profesion,
+            'type_doc' => $tipodoc,
+            'no_identifica' => $numeroDoc,
+            'no_tributaria' => !empty($numeroNIT) ? $numeroNIT : '-',
+            'pais_nacio' => $paisnac,
+            'nacionalidad' => $nacionalidad,
+            'email' => $email,
+            'tel_no1' => $tel1,
+            'tel_no2' => $tel2,
+            'Direccion' => $dirVivienda,
+            'zona' => $zonaVivienda,
+            'barrio' => $barrioVivienda,
+            'Nomb_Ref1' => $refNombre1,
+            'Tel_Ref1' => $ref1,
+            'parentesco1' => !empty($refp1) ? $refp1 : null,
+            'Nomb_Ref2' => $refNombre2,
+            'Tel_Ref2' => $ref2,
+            'parentesco2' => !empty($refp2) ? $refp2 : null,
+            'observaciones' => $observaciones,
+            'estado' => '1',
+            'fecha_alta' => date('Y-m-d H:i:s'),
+            'created_by' => $_SESSION['id'] ?? 1,
+            'fecha_mod' => date('Y-m-d H:i:s')
+        ];
+        
+        $database->insert('tb_cliente', $data);
+        $database->commit();
+        
+        echo json_encode(["Cliente ingresado correctamente, código: $codgen", '1']);
+        
+    } catch (Exception $e) {
+        if (isset($database)) $database->rollback();
+        $codigoError = function_exists('logerrores') ? logerrores($e->getMessage(), __FILE__, __LINE__, $e->getFile(), $e->getLine()) : '';
+        echo json_encode([$e->getMessage(), '0']);
+    } finally {
+        if (isset($database)) $database->closeConnection();
+    }
+    break;
+}
 }
 
 

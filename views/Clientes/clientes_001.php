@@ -4435,6 +4435,371 @@ switch ($condi) {
         </script>
     <?php
         break;
+        break;
+case 'create_cliente_basico': {
+    $codcliente = $_POST["xtra"];
+    $isNewCustomer = ($codcliente === '0' || (is_string($codcliente) && strpos($codcliente, 'draft_') === 0));
+    $bandera = !$isNewCustomer;
+    $showmensaje = false;
+    
+    try {
+        $database->openConnection(2);
+        
+        // Catálogos básicos necesarios
+        $paisesCatalogo = $database->selectColumns('tb_paises', ['abreviatura AS Abreviatura', 'nombre AS Pais']);
+        if (empty($paisesCatalogo)) {
+            $showmensaje = true;
+            throw new Exception("No hay catálogo de países");
+        }
+        
+        $departamentosCatalogo = $database->selectColumns('tb_departamentos', ['id AS codigo_departamento', 'nombre']);
+        $parentescoCatalogo = $database->selectColumns('tb_parentescos', ['id AS id_parent', 'descripcion']);
+        
+        $database->closeConnection();
+        $database->openConnection();
+        
+        $agencias = $database->selectColumns('tb_agencia', ['id_agencia', 'cod_agenc', 'nom_agencia']);
+        
+        if ($bandera) {
+            // Si es actualización, obtener datos del cliente
+            $query = "SELECT * FROM tb_cliente WHERE estado = '1' AND idcod_cliente = ?";
+            $datos = $database->getAllResults($query, [$codcliente]);
+            if (empty($datos)) {
+                $showmensaje = true;
+                throw new Exception("No se encontró información del cliente");
+            }
+        }
+        
+        $status = true;
+    } catch (Exception $e) {
+        $codigoError = logerrores($e->getMessage(), __FILE__, __LINE__, $e->getFile(), $e->getLine());
+        $mensaje = "Error: Intente nuevamente ($codigoError)";
+        $status = false;
+    } finally {
+        $database->closeConnection();
+    }
+?>
+    <input type="text" id="file" value="clientes_001" style="display:none;">
+    <input type="text" id="condi" value="create_cliente_natural" style="display:none;">
+    
+    <style>
+        .card { border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card-header { background: #007bff; color: white; border-radius: 8px 8px 0 0 !important; }
+        .form-control:focus, .form-select:focus { border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25); }
+        .btn-primary { background: #007bff; border: none; }
+        .btn-primary:hover { background: #0056b3; }
+        .contenedort { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fa-solid fa-user me-2"></i><?= !$isNewCustomer ? 'Actualizar' : 'Nuevo' ?> Cliente (BETA)
+        </div>
+        <div class="card-body">
+       <!-- <?php if (!$status): ?>  -->
+                <!-- <div class="alert alert-danger"><?= $mensaje ?></div> -->
+            <!-- <?php endif; ?> -->
+
+            <!-- Información Personal Básica -->
+            <div class="contenedort">
+                <h5 class="mb-3">Información Personal</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Primer nombre *</label>
+                        <input type="text" class="form-control" id="nom1" 
+                               value="<?= $bandera ? $datos[0]['primer_name'] : '' ?>" 
+                               onkeyup="concatenarValores(['nom1','nom2','nom3'], ['ape1','ape2','ape3'], 1, '#nomcorto')">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Segundo nombre</label>
+                        <input type="text" class="form-control" id="nom2" 
+                               value="<?= $bandera ? $datos[0]['segundo_name'] : '' ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tercer nombre</label>
+                        <input type="text" class="form-control" id="nom3" 
+                               value="<?= $bandera ? $datos[0]['tercer_name'] : '' ?>">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Primer apellido *</label>
+                        <input type="text" class="form-control" id="ape1" 
+                               value="<?= $bandera ? $datos[0]['primer_last'] : '' ?>"
+                               onkeyup="concatenarValores(['nom1','nom2','nom3'], ['ape1','ape2','ape3'], 1, '#nomcorto')">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Segundo apellido</label>
+                        <input type="text" class="form-control" id="ape2" 
+                               value="<?= $bandera ? $datos[0]['segundo_last'] : '' ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Apellido de casada</label>
+                        <input type="text" class="form-control" id="ape3" 
+                               value="<?= $bandera ? $datos[0]['casada_last'] : '' ?>">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre corto</label>
+                        <input type="text" class="form-control" id="nomcorto" readonly 
+                               value="<?= $bandera ? $datos[0]['short_name'] : '' ?>">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" class="form-control" id="nomcompleto" readonly 
+                               value="<?= $bandera ? $datos[0]['compl_name'] : '' ?>">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha nacimiento</label>
+                        <input type="date" class="form-control" id="fechanacimiento" 
+                               value="<?= $bandera ? $datos[0]['date_birth'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Género</label>
+                        <select class="form-select" id="genero">
+                            <option value="">Seleccione</option>
+                            <option value="M" <?= ($bandera && $datos[0]['genero'] == 'M') ? 'selected' : '' ?>>Masculino</option>
+                            <option value="F" <?= ($bandera && $datos[0]['genero'] == 'F') ? 'selected' : '' ?>>Femenino</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado civil</label>
+                        <select class="form-select" id="estcivil">
+                            <option value="">Seleccione</option>
+                            <option value="SOLTERO" <?= ($bandera && $datos[0]['estado_civil'] == 'SOLTERO') ? 'selected' : '' ?>>Soltero/a</option>
+                            <option value="CASADO" <?= ($bandera && $datos[0]['estado_civil'] == 'CASADO') ? 'selected' : '' ?>>Casado/a</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Profesión</label>
+                        <input type="text" class="form-control" id="profesion" 
+                               value="<?= $bandera ? $datos[0]['profesion'] : '' ?>">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documento de Identificación -->
+            <div class="contenedort">
+                <h5 class="mb-3">Identificación</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo documento</label>
+                        <select class="form-select" id="tipodoc">
+                            <option value="DPI" <?= ($bandera && $datos[0]['type_doc'] == 'DPI') ? 'selected' : '' ?>>DPI</option>
+                            <option value="PASAPORTE" <?= ($bandera && $datos[0]['type_doc'] == 'PASAPORTE') ? 'selected' : '' ?>>Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Número documento</label>
+                        <input type="text" class="form-control" id="numberdoc" 
+                               value="<?= $bandera ? $datos[0]['no_identifica'] : '' ?>">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">NIT</label>
+                        <input type="text" class="form-control" id="numbernit" 
+                               value="<?= $bandera ? $datos[0]['no_tributaria'] : '' ?>">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">País de origen</label>
+                        <select class="form-select" id="paisnac">
+                            <option value="">Seleccione</option>
+                            <?php foreach ($paisesCatalogo as $pais): ?>
+                                <option value="<?= $pais['Abreviatura'] ?>" 
+                                    <?= ($bandera && $datos[0]['pais_nacio'] == $pais['Abreviatura']) ? 'selected' : '' ?>>
+                                    <?= $pais['Pais'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Nacionalidad</label>
+                        <select class="form-select" id="nacionalidad">
+                            <option value="">Seleccione</option>
+                            <?php foreach ($paisesCatalogo as $pais): ?>
+                                <option value="<?= $pais['Abreviatura'] ?>" 
+                                    <?= ($bandera && $datos[0]['nacionalidad'] == $pais['Abreviatura']) ? 'selected' : '' ?>>
+                                    <?= $pais['Pais'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacto y Domicilio -->
+            <div class="contenedort">
+                <h5 class="mb-3">Contacto y Domicilio</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" 
+                               value="<?= $bandera ? $datos[0]['email'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Teléfono 1</label>
+                        <input type="text" class="form-control" id="tel1" 
+                               value="<?= $bandera ? $datos[0]['tel_no1'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Teléfono 2</label>
+                        <input type="text" class="form-control" id="tel2" 
+                               value="<?= $bandera ? $datos[0]['tel_no2'] : '' ?>">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="dirviv" 
+                               value="<?= $bandera ? $datos[0]['Direccion'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Zona</label>
+                        <input type="text" class="form-control" id="zonaviv" 
+                               value="<?= $bandera ? $datos[0]['zona'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Colonia/Barrio</label>
+                        <input type="text" class="form-control" id="barrioviv" 
+                               value="<?= $bandera ? $datos[0]['barrio'] : '' ?>">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referencias -->
+            <div class="contenedort">
+                <h5 class="mb-3">Referencias Personales</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Referencia 1 - Nombre</label>
+                        <input type="text" class="form-control" id="refn1" 
+                               value="<?= $bandera ? $datos[0]['Nomb_Ref1'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="ref1" 
+                               value="<?= $bandera ? $datos[0]['Tel_Ref1'] : '' ?>">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Parentesco</label>
+                        <select class="form-select" id="refp1">
+                            <option value="">Seleccione</option>
+                            <?php foreach ($parentescoCatalogo as $parentesco): ?>
+                                <option value="<?= $parentesco['id_parent'] ?>"><?= $parentesco['descripcion'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Referencia 2 - Nombre</label>
+                        <input type="text" class="form-control" id="refn2" 
+                               value="<?= $bandera ? $datos[0]['Nomb_Ref2'] : '' ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="ref2" 
+                               value="<?= $bandera ? $datos[0]['Tel_Ref2'] : '' ?>">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Parentesco</label>
+                        <select class="form-select" id="refp2">
+                            <option value="">Seleccione</option>
+                            <?php foreach ($parentescoCatalogo as $parentesco): ?>
+                                <option value="<?= $parentesco['id_parent'] ?>"><?= $parentesco['descripcion'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    <textarea class="form-control" id="observaciones" rows="3"><?= $bandera ? $datos[0]['observaciones'] : '' ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer text-end">
+            <?php if ($isNewCustomer): ?>
+                <button class="btn btn-outline-success mt-2" onclick="obtiene_plus2_simple(
+    [
+        'nom1','nom2','nom3','ape1','ape2','ape3','profesion','email',
+        'fechanacimiento','numberdoc','numbernit','tel1','tel2','dirviv',
+        'zonaviv','barrioviv','refn1','ref1','refn2','ref2','observaciones'
+    ],
+    [
+        'genero','estcivil','tipodoc','paisnac','nacionalidad','refp1','refp2'
+    ],
+    [],
+    'create_cliente_basico',
+    '0',
+    ['<?= $agenciaID ?? $_SESSION['agencia'] ?? '1' ?>', '<?= $draftId ?? '0' ?>']
+)">
+    <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cliente
+</button>
+            <?php else: ?>
+                <button class="btn btn-primary" onclick="guardarClienteBasico('update', '<?= $codcliente ?>')">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Actualizar Cliente
+                </button>
+            <?php endif; ?>
+            <button type="button" class="btn btn-secondary" onclick="salir()">
+                <i class="fa-solid fa-ban"></i> Cancelar
+            </button>
+        </div>
+    </div>
+
+    <script>
+    function guardarClienteBasico(accion, codcliente = '0') {
+        // Array de campos de texto
+        const camposTexto = [
+            'nom1','nom2','nom3','ape1','ape2','ape3','nomcorto','nomcompleto',
+            'fechanacimiento','profesion','numberdoc','numbernit','email',
+            'tel1','tel2','dirviv','zonaviv','barrioviv','refn1','ref1',
+            'refn2','ref2','observaciones'
+        ];
+        
+        // Array de selects
+        const camposSelect = [
+            'genero','estcivil','tipodoc','paisnac','nacionalidad','refp1','refp2'
+        ];
+        
+        // Array de radios (si los hay)
+        const camposRadio = [];
+        
+        // Parámetros adicionales
+        const params = [codcliente];
+        
+        // Llamar a la función existente obtiene_plus2
+        obtiene_plus2(
+            camposTexto,
+            camposSelect,
+            camposRadio,
+            accion === 'create' ? 'create_cliente_natural' : 'update_cliente_natural',
+            codcliente,
+            params
+        );
+    }
+    </script>
+<?php
+}
+break;
 
     case 'Editar_Cliente':
     ?>

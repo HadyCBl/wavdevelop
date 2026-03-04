@@ -554,7 +554,7 @@ $(document).ready(function () {
         if (!devtoolsOpen) {
           devtoolsOpen = true;
           console.log(
-            "%c Advertencia: No utilices esta consola a menos que sepas exactamente lo que estás haciendo. Puedes estar expuesto a riesgos de seguridad. TE LO DIJO CHEMA ALONSO",
+            "%c Advertencia: No utilices esta consola a menos que sepas exactamente lo que estás haciendo. ",
             "color: red; font-size: 20px;"
           );
         }
